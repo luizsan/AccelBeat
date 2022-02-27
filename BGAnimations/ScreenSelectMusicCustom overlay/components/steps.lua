@@ -334,12 +334,14 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             end,
 
             Def.Sprite{
-                Texture = THEME:GetPathG("", "Common window icon"),
+                Texture = THEME:GetPathG("", "radar"),
                 InitCommand=function(self)
-                    self:zoomto(32,32)
-                    self:xy(-24,-6)
-                    self:diffuse( BoostColor( PlayerColor(pn), 0.5) )
-                    self:diffusealpha( 0.3 )
+                    self:animate(0)
+                    self:setstate(r-1)
+                    self:zoomto(40,40)
+                    self:xy(-26,-6)
+                    self:diffuse( BoostColor( PlayerColor(pn), 0.75) )
+                    self:diffusealpha( 0.25 )
                 end,
             },
 
