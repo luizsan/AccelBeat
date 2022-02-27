@@ -1,8 +1,0 @@
-{
-    "files.exclude": {
-        "**/desktop.ini": true
-    },
-    "search.exclude": {
-        "**/desktop.ini": true
-    }
-}
