@@ -375,8 +375,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                         self:targetnumber("0")
                         local rv = SelectMusic.playerSteps[pn]:GetRadarValues(pn)
                         local val = rv:GetValue(radar[r])
-                        -- self:settext( string.cap(val, "0", 4) )
-                        self:targetnumber( string.cap(val, "0", 4) )
+                        self:targetnumber( string.cap(tostring(val), "0", 4) )
                     end
                 end,
             }
