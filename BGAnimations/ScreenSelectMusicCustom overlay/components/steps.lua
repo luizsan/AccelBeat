@@ -568,9 +568,9 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                 local abs = math.abs(scroller)
                 local sign = clamp(scroller, -1, 1)
     
-                self:zoomx(0.55):zoomy(0.55)
+                self:zoomx(0.575):zoomy(0.575)
                 self:x( abs == numItems and coords[scroller-sign] or coords[scroller] )
-                self:y(53)
+                self:y(51)
                 self:rotationy( abs == numItems and 90 or 0 )
             end,
     

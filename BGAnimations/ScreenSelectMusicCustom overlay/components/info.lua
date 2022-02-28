@@ -90,8 +90,8 @@ t[#t+1] = Def.BitmapText{
     InitCommand=function(self)
         self:diffuse(0,0.625,1,1)
         self:halign(0,0)
-        self:xy(SCREEN_CENTER_X - 485, h + 8)
-        self:zoom(0.6)
+        self:xy(SCREEN_CENTER_X - 485, h + 6)
+        self:zoom(0.55)
         self:shadowcolor( Color.White )
         self:shadowlengthy(-2)
     end,
@@ -102,7 +102,7 @@ t[#t+1] = Def.BitmapText{
         elseif context.item.type == ItemType.Folder then
             self:settext( context.item.num_songs.." songs" )
         elseif context.item.type == ItemType.Sort then
-            self:settext( "Sort Mode ")
+            self:settext( "Sort Mode")
         end
     end
 }
@@ -112,7 +112,7 @@ t[#t+1] = Def.BitmapText{
 -- duration
 t[#t+1] = Def.BitmapText{
     Name = "BPM",
-    Font = Font.SmallNumbers,
+    Font = Font.UIHeavy,
     Text = "BPM",
     InitCommand=function(self)
         self:diffuse( BoostColor( Color.White, 0.333333 ))
@@ -120,7 +120,7 @@ t[#t+1] = Def.BitmapText{
         self:xy(SCREEN_CENTER_X + 520, h - 2)
         self:shadowcolor( Color.White )
         self:shadowlengthy(-1)
-        self:zoom(0.35)
+        self:zoom(0.475)
     end,
 
     GridSelectedMessageCommand=function(self,context)
@@ -143,7 +143,7 @@ t[#t+1] = Def.BitmapText{
 -- BPM
 t[#t+1] = Def.BPMDisplay{
     Name = "BPM",
-    Font = Font.SmallNumbers,
+    Font = Font.UIHeavy,
     Text = "000",
     InitCommand=function(self)
         self:diffuse(0,0.625,1,1)
@@ -151,7 +151,7 @@ t[#t+1] = Def.BPMDisplay{
         self:xy(SCREEN_CENTER_X + 520, h + 16)
         self:shadowcolor( Color.White )
         self:shadowlengthy(-2)
-        self:zoom(0.5)
+        self:zoom(0.7)
 
         local c = AccentColor("Blue", 1)
         self:diffuseshift()

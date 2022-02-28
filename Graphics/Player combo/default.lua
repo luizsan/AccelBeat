@@ -35,6 +35,7 @@ local t = Def.ActorFrame{
 			self:halign(1)
 			self:diffuse(0.75,0.75,0.75,1)
 			self:strokecolor(0,0,0,0.66)
+			self:shadowlength(1)
 			self:diffusealpha(0)
 			self:zoomx(0.4):zoomy(0.4125)
 			self:xy(48,9)
@@ -80,12 +81,13 @@ local t = Def.ActorFrame{
 
 	--combo
 	Def.BitmapText{
-		Font = Font.SmallNumbers,
+		Font = Font.LargeNumbers,
 		OnCommand=function(self)
 			self:halign(1)
 			self:diffuse(1,1,1,0)
-			self:strokecolor(0,0,0,0.5)
-			self:zoomx(0.82):zoomy(0.7)
+			self:strokecolor(0,0,0,0.75)
+			self:shadowlength(2)
+			self:zoomx(0.4):zoomy(0.375)
 			self:xy(0,30)
 		end,
 
@@ -114,6 +116,7 @@ local t = Def.ActorFrame{
 			self:halign(0):valign(0)
 			self:diffuse(1,1,1,0)
 			self:strokecolor(0,0,0,0.95)
+			self:shadowlength(1)
 			self:zoom(0.375)
 			self:vertspacing(-2)
 			self:xy(6,18)
@@ -148,6 +151,7 @@ local t = Def.ActorFrame{
                     
 				elseif context.Combo then
 					text = "\nCombo"
+					color = {0.8,0.8,0.8,1}
                     
 				elseif context.Misses then
 					text = "Miss\nCombo"
