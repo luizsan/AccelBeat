@@ -20,7 +20,10 @@ function ReadOptionsTable(pn)
         t.SpeedType = "automatic"
     end
 
-    t.Increment = 25
+    if PROFILEMAN:IsPersistentProfile(pn) then
+        local profile_dir = GetPlayerOrMachineProfileDir(pn)
+        t.Increment = LoadModule("Config.Load.lua")("Increment", profile_dir.."/"..PlayerConfigDir) or 25
+    end
 
     t.Hidden = options:Hidden()
     t.Sudden = options:Sudden()
@@ -59,6 +62,11 @@ function WriteOptionsTable(pn, t)
         end
     else
         options:AMod(250)
+    end
+
+    if PROFILEMAN:IsPersistentProfile(pn) then
+        local profile_dir = GetPlayerOrMachineProfileDir(pn)
+        LoadModule("Config.Save.lua")("Increment", t.Increment or 25, profile_dir.."/"..PlayerConfigDir)
     end
     
     options:Hidden( t.Hidden or 0 )
