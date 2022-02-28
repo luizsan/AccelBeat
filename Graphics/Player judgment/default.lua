@@ -56,6 +56,7 @@ local t = Def.ActorFrame{
 	JudgmentMessageCommand=function(self,context) 
 		if context.TapNoteScore == "TapNoteScore_HitMine" then return end
 		if context.TapNoteScore == "TapNoteScore_AvoidMine" then return end
+		if context.HoldNoteScore and context.HoldNoteScore ~= "HoldNoteScore_None" then return end
 		if context.Player == player and context.TapNoteScore then 
 			pulse(self)
 		end
@@ -83,7 +84,7 @@ local t = Def.ActorFrame{
 	Def.BitmapText{
 		Font = Font.UIHeavy,
 		InitCommand=function(self)
-			self:zoom(0.35):y(-32):visible(true)
+			self:zoom(0.375):y(-32):visible(true)
 		end,
 		PulseCommand=function(self,context)
 			self:stoptweening()
