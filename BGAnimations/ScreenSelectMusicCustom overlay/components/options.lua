@@ -397,7 +397,7 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         
         -- label
         r[#r+1] = Def.BitmapText{
-            Font = "NewRodinB-24",
+            Font = Font.UINormal,
             InitCommand=function(self)
                 self:zoom(0.475)
                 self:halign(0)
@@ -473,7 +473,7 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
         -- value
         r[#r+1] = Def.BitmapText{
-            Font = "NewRodinB-24",
+            Font = Font.UINormal,
             InitCommand=function(self)
                 self:zoom(0.45)
                 self:halign(1)

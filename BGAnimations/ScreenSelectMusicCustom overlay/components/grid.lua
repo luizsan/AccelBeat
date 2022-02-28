@@ -694,7 +694,7 @@ for y = 1, Grid.slots.y do
 
             Def.BitmapText{
                 Name = "Label",
-                Font = "NewRodinB-24",
+                Font = Font.UINormal,
                 InitCommand=function(self) 
                     self:shadowlength(1)
                 end,

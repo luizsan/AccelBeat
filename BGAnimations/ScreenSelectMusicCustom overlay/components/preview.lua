@@ -111,7 +111,7 @@ t[#t+1] = Def.ActorFrame{
 
     Def.BitmapText{
         Text = "Chart Preview",
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         InitCommand=function(self)
             self:zoom(0.5)
         end

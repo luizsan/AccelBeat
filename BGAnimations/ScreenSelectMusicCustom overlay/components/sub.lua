@@ -66,7 +66,7 @@ t[#t+1] = Def.ActorFrame{
 
     Def.BitmapText{
         Name = "Folder",
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         Text = "Song Folder",
         InitCommand=function(self)
             self:diffuse(Color.White)
@@ -161,7 +161,7 @@ t[#t+1] = Def.ActorFrame{
 
     Def.BitmapText{
         Name = "Sort",
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         Text = "Sort Mode",
         InitCommand=function(self)
             self:diffuse(Color.White)

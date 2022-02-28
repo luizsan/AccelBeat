@@ -186,7 +186,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
     -- author label
     side[#side+1] = Def.BitmapText{
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         Text = "Chart Author",
         InitCommand=function(self)
             self:align(pnAlign(pn),0)
@@ -199,7 +199,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
     -- author name
     side[#side+1] =Def.BitmapText{
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         Text = "Author Name",
         InitCommand=function(self)
             self:align(pnAlign(pn),0)
@@ -225,7 +225,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
     -- chart name + description
     side[#side+1] = Def.BitmapText{
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         Text = "No Description",
         InitCommand=function(self)
             self:align(pnAlign(pn),0)
@@ -261,7 +261,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
     -- peak label
     side[#side+1] = Def.BitmapText{
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         Text = "Peak Notes/sec.",
         InitCommand=function(self)
             self:align(0,0)
@@ -274,7 +274,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
     -- average label
     side[#side+1] = Def.BitmapText{
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         Text = "Average Notes/sec.",
         InitCommand=function(self)
             self:align(0,0)
@@ -288,7 +288,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
     -- peak value
     side[#side+1] = Def.BitmapText{
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         Text = "0.00",
         InitCommand=function(self)
             self:align(1,0)
@@ -304,7 +304,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
     -- average value
     side[#side+1] = Def.BitmapText{
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         Text = "0.00",
         InitCommand=function(self)
             self:align(1,0)
@@ -346,7 +346,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             },
 
             Def.BitmapText{
-                Font = "NewRodinB-24",
+                Font = Font.UINormal,
                 Text = "Item",
                 InitCommand=function(self)
                     self:zoom(0.4)
@@ -364,7 +364,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             },
 
             Def.RollingNumbers{
-                Font = "NewRodinEB-32-Numbers",
+                Font = Font.SmallNumbers,
                 Text = "0000",
                 InitCommand=function(self)
                     self:zoom(0.45)
@@ -423,7 +423,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     -- minilabel
     sel[#sel+1] = Def.BitmapText{
         Text = "PLAYER "..i,
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         InitCommand=function(self)
             self:zoom(0.333333)
             self:halign(pnAlign(pn))
@@ -437,7 +437,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     -- stepstype
     sel[#sel+1] = Def.BitmapText{
         Text = "STEPSTYPE",
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         InitCommand=function(self)
             self:zoom(0.45)
             self:y(-36)
@@ -463,7 +463,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     -- tag (unused?)
     sel[#sel+1] = Def.BitmapText{
         Text = "TAG",
-        Font = "NewRodinB-24",
+        Font = Font.UINormal,
         InitCommand=function(self)
             self:zoom(0.375)
             self:y(16)
@@ -474,7 +474,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     
     sel[#sel+1] = Def.BitmapText{
         Text = "00",
-        Font = "NewRodinEB-64-Numbers",
+        Font = Font.LargeNumbers,
         InitCommand=function(self)
             self:zoom(0.666666)
             self:y(-8)
@@ -561,7 +561,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     
         sel[#sel+1] = Def.BitmapText{
             Text = "00",
-            Font = "NewRodinEB-32-Numbers",
+            Font = Font.SmallNumbers,
             InitCommand=function(self)
                 local abs = math.abs(scroller)
                 local sign = clamp(scroller, -1, 1)

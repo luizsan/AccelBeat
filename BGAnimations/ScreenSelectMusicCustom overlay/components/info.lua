@@ -56,7 +56,7 @@ t[#t+1] = Def.Sprite{
 
 t[#t+1] = Def.BitmapText{
     Name = "Title",
-    Font = "NewRodinB-24",
+    Font = Font.UIHeavy,
     Text = "Song Title",
     InitCommand=function(self)
         self:diffuse(BoostColor(Color.White, 0.1))
@@ -85,7 +85,7 @@ t[#t+1] = Def.BitmapText{
     
 t[#t+1] = Def.BitmapText{
     Name = "Artist",
-    Font = "NewRodinB-24",
+    Font = Font.UINormal,
     Text = "Artist",
     InitCommand=function(self)
         self:diffuse(0,0.625,1,1)
@@ -112,7 +112,7 @@ t[#t+1] = Def.BitmapText{
 -- duration
 t[#t+1] = Def.BitmapText{
     Name = "BPM",
-    Font = "NewRodinEB-32-Numbers",
+    Font = Font.SmallNumbers,
     Text = "BPM",
     InitCommand=function(self)
         self:diffuse( BoostColor( Color.White, 0.333333 ))
@@ -143,7 +143,7 @@ t[#t+1] = Def.BitmapText{
 -- BPM
 t[#t+1] = Def.BPMDisplay{
     Name = "BPM",
-    Font = "NewRodinEB-32-Numbers",
+    Font = Font.SmallNumbers,
     Text = "000",
     InitCommand=function(self)
         self:diffuse(0,0.625,1,1)

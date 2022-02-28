@@ -81,7 +81,7 @@ local t = Def.ActorFrame{
 
 	-- early/late
 	Def.BitmapText{
-		Font = "NewRodinEB-32",
+		Font = Font.UIHeavy,
 		InitCommand=function(self)
 			self:zoom(0.35):y(-32):visible(true)
 		end,
