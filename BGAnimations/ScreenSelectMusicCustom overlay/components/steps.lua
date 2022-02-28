@@ -144,7 +144,7 @@ function Confirm()
         GAMESTATE:SetCurrentSteps( pn, SelectMusic.playerSteps[pn] )
         WriteOptionsTable(pn, SelectMusic.playerOptions[pn] )
     end
-    
+
     RememberGrid()
     SCREENMAN:PlayStartSound()
     SCREENMAN:GetTopScreen():SetNextScreenName("ScreenGameplay"):StartTransitioningScreen("SM_GoToNextScreen")
@@ -364,11 +364,13 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             },
 
             Def.RollingNumbers{
-                Font = Font.SmallNumbers,
+                Font = Font.UIHeavy,
                 Text = "0000",
                 InitCommand=function(self)
-                    self:zoom(0.45)
+                    self:zoom(0.6)
                     self:strokecolor( BoostColor( PlayerColor(pn), 0.5 ))
+                    self:shadowcolor( BoostColor( PlayerColor(pn), 0.15 ))
+                    self:shadowlength(1.5)
                     self:Load("RollingNumbersRadar")
                 end,
 
@@ -561,13 +563,12 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     
         sel[#sel+1] = Def.BitmapText{
             Text = "00",
-            Font = Font.SmallNumbers,
+            Font = Font.UIHeavy,
             InitCommand=function(self)
                 local abs = math.abs(scroller)
                 local sign = clamp(scroller, -1, 1)
     
-                self:zoomx(0.4)
-                self:zoomy(0.4)
+                self:zoomx(0.55):zoomy(0.55)
                 self:x( abs == numItems and coords[scroller-sign] or coords[scroller] )
                 self:y(53)
                 self:rotationy( abs == numItems and 90 or 0 )
