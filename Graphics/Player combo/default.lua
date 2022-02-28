@@ -1,7 +1,7 @@
 local player = Var "Player"
 local pulse = function(self)
 	self:stoptweening()
-	self:zoomx(1.3):zoomy(1.2)
+	self:zoomx(1.25):zoomy(1.2)
 	self:decelerate(0.075)
 	self:zoom(1)
 	self:sleep(0.725):linear(0.12)
@@ -37,7 +37,7 @@ local t = Def.ActorFrame{
 			self:strokecolor(0,0,0,0.66)
 			self:shadowlength(1)
 			self:diffusealpha(0)
-			self:zoomx(0.4):zoomy(0.4125)
+			self:zoomx(0.4):zoomy(0.4)
 			self:xy(48,9)
 		end,
 
@@ -81,14 +81,12 @@ local t = Def.ActorFrame{
 
 	--combo
 	Def.BitmapText{
-		Font = Font.LargeNumbers,
+		Font = Font.Combo,
 		OnCommand=function(self)
 			self:halign(1)
 			self:diffuse(1,1,1,0)
-			self:strokecolor(0,0,0,0.75)
-			self:shadowlength(2)
-			self:zoomx(0.4):zoomy(0.375)
-			self:xy(0,30)
+			self:zoomx(0.466666):zoomy(0.45)
+			self:xy(0,38)
 		end,
 
 		ComboCommand=function(self,context)
@@ -119,7 +117,7 @@ local t = Def.ActorFrame{
 			self:shadowlength(1)
 			self:zoom(0.375)
 			self:vertspacing(-2)
-			self:xy(6,18)
+			self:xy(8,19)
 		end,
 
 		ComboCommand=function(self,context)

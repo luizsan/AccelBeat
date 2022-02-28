@@ -5,7 +5,7 @@ local marvelous_timing = PREFSMAN:GetPreference("AllowW1") == "AllowW1_Everywher
 local pulse = function(self)
 	self:stoptweening()
 	self:diffusealpha(1)
-	self:zoomx(1.3):zoomy(1.3)
+	self:zoomx(1.25):zoomy(1.2)
 	self:decelerate(0.08)
 	self:zoom(1)
 	self:sleep(0.725):linear(0.12)
@@ -65,7 +65,7 @@ local t = Def.ActorFrame{
 	-- judgment
 	LoadActor("Judgment")..{
 		OnCommand=function(self)
-			self:valign(0.5):zoom(0.575):animate(false):y(-8):diffusealpha(0)
+			self:valign(0.5):zoom(0.55):animate(false):y(-8):diffusealpha(0)
 		end,
 		JudgmentMessageCommand=function(self,context)
 			if context.TapNoteScore == "TapNoteScore_HitMine" then return end
@@ -84,7 +84,7 @@ local t = Def.ActorFrame{
 	Def.BitmapText{
 		Font = Font.UIHeavy,
 		InitCommand=function(self)
-			self:zoom(0.375):y(-32):visible(true)
+			self:zoom(0.375):y(-30):visible(true)
 		end,
 		PulseCommand=function(self,context)
 			self:stoptweening()
