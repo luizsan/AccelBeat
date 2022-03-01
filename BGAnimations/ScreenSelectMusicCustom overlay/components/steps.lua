@@ -456,8 +456,13 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             self:diffuse( 1,0.8,0.4,1 )
         end,
         StateChangedMessageCommand=function(self) self:visible(false) end,
-        ConfirmMessageCommand=function(self)
+        StepsChangedMessageCommand=function(self) self:playcommand("Refresh") end,
+        ConfirmMessageCommand=function(self) self:playcommand("Refresh") end,
+        RefreshMessageCommand=function(self)
             self:visible( SelectMusic.confirm[pn] > 0)
+            self:diffuse( Color.White )
+            self:linear(0.333333)
+            self:diffuse( 1, 0.8, 0.4, 1 )
         end,
     }
 
