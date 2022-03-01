@@ -43,7 +43,7 @@ function MenuInputMaster(event)
     if event.type ~= "InputEventType_Release" then
         local context = {
             Menu = _menu[event.button] or event.button,
-            Direction = _direction[event.button] or event.button,
+            Direction = _direction[event.button] or nil,
             Button = event.button,
             Player = event.PlayerNumber,
         }
