@@ -1,8 +1,5 @@
 local h = 72
-
 local t = Def.ActorFrame{}
-
-
 
 -- folder
 t[#t+1] = Def.ActorFrame{
@@ -11,16 +8,12 @@ t[#t+1] = Def.ActorFrame{
         self:finishtweening()
     end,
 
-    GridSelectedMessageCommand=function(self)
-        self:stoptweening()
-        self:decelerate(0.15)
-        self:zoomy( GAMESTATE:GetCurrentSong() and 1 or 0 )
-    end,
-
-    StateChangedMessageCommand=function(self)
+    StateChangedMessageCommand=function(self) self:playcommand("Refresh") end,
+    GridSelectedMessageCommand=function(self) self:playcommand("Refresh") end,
+    RefreshCommand=function(self)
         self:stoptweening()
         self:decelerate(0.1)
-        self:zoomy( SelectMusic.state == 0 and 1 or 0 )
+        self:zoomy( GAMESTATE:GetCurrentSong() and SelectMusic.state == 0 and 1 or 0 )
     end,
 
     Def.Sprite{
