@@ -74,11 +74,11 @@ t[#t+1] = Def.BitmapText{
 		local d = {}
 		local pn = context and context.Player or "None"
 		d[#d+1] = "Last Input"
-		d[#d+1] = "Player: "..pn
+		d[#d+1] = "Player: "..string.gsub(pn, "PlayerNumber_", "")
 		d[#d+1] = "Menu: "..(context and context.Menu or "---")
 		d[#d+1] = "Direction: "..(context and context.Direction or "---")
 		d[#d+1] = "GameButton: "..(context and context.Button or "---")
-		d[#d+1] = "Players: "..table.concat( GAMESTATE:GetHumanPlayers(), ", ")
+		d[#d+1] = "Players: "..string.gsub(table.concat( GAMESTATE:GetHumanPlayers(), ", "), "PlayerNumber_", "")
 		d[#d+1] = "Confirm P1: "..(SelectMusic.confirm[PLAYER_1] or 0)
 		d[#d+1] = "Confirm P2: "..(SelectMusic.confirm[PLAYER_2] or 0)
 		self:settext(table.concat(d, "\n"))
