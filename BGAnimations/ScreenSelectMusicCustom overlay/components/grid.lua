@@ -147,7 +147,7 @@ function InitializeGrid()
     end
 
     UpdateGridCoords()
-    GridInputController({})
+    GridInputController({ Direction = "Center" })
     GAMESTATE:SetCurrentSong( current_item.type == ItemType.Song and current_item.content or nil )
     MESSAGEMAN:Broadcast("SortChanged", { item = current_item, sort = SelectMusic.currentSort, filter = SelectMusic.currentFilter })
     MESSAGEMAN:Broadcast("GridSelected", { item = current_item, sort = SelectMusic.currentSort, filter = SelectMusic.currentFilter })
@@ -459,6 +459,8 @@ function GridInputController(context)
         if current_index.x > #prev_row then WrapForward() end
     end
 
+    -- // ========================================
+    
     if current_index.y > #current_rows then 
         current_index.y = 1 
         coords_direction = 1
@@ -469,6 +471,17 @@ function GridInputController(context)
         coords_direction = -1
     end
 
+    -- // ========================================
+    
+    if context.Menu ~= nil and string.startswith( context.Menu, "Sort" ) then
+        current_index.y = 1
+        current_index.x = 1
+        context.Direction = "Center"
+        GAMESTATE:SetCurrentSong(nil)
+    end
+
+    -- // ========================================
+    
     SelectMusic.currentRow = GetCurrentRow(current_index.y)
     current_item = GetCurrentItem(SelectMusic.currentRow)
 
@@ -522,9 +535,14 @@ function GridInputController(context)
         end
     end
 
+    -- if string.startswith( context.Menu, "Sort" ) then
+    --     current_index.y = 0
+    -- end
 
-    UpdateGridCoords()
-    MESSAGEMAN:Broadcast("GridScroll")
+    if context.Direction then 
+        UpdateGridCoords()
+        MESSAGEMAN:Broadcast("GridScroll")
+    end
 
     local params = { 
         item = current_item, 

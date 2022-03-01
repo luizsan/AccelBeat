@@ -1,7 +1,8 @@
 local _codes = {
-    OptionsNormal = { "Left", "Right", "Left", "Right", "Left", "Right" },
-    OptionsMenu = { "MenuLeft", "MenuRight", "MenuLeft", "MenuRight", "MenuLeft", "MenuRight" },
-    OptionsPump = { "DownLeft", "DownRight", "DownLeft", "DownRight", "DownLeft", "DownRight" },
+    Options1 = { "MenuLeft", "MenuRight", "MenuLeft", "MenuRight", "MenuLeft", "MenuRight" },
+    Options2 = { "DownLeft", "DownRight", "DownLeft", "DownRight", "DownLeft", "DownRight" },
+    Sort1 = { "MenuUp-MenuDown" },
+    Sort2 = { "UpLeft-UpRight" },
 }
 
 local _direction = {
@@ -9,11 +10,13 @@ local _direction = {
     ["UpRight"] = "Down",
     ["DownLeft"] = "Left",
     ["DownRight"] = "Right",
+    ["Center"] = "Center",
     --
     ["MenuUp"] = "Up",
     ["MenuDown"] = "Down",
     ["MenuLeft"] = "Left",
     ["MenuRight"] = "Right",
+    ["Start"] = "Center",
 }
 
 local _menu = {
@@ -83,10 +86,7 @@ function MenuInputActor()
         -- queue the code so it's executed along with the input callback (scroll up)
         CodeMessageCommand=function(self,context) 
             if context.PlayerNumber and GAMESTATE:IsSideJoined(context.PlayerNumber) then
-                local code = _codes[context.Name] or nil
-                local last_press = code[#code]
-                local pn = context.PlayerNumber
-                _codeQueue[pn] = { Menu = context.Name, Player = pn }
+                _codeQueue[context.PlayerNumber] = { Menu = context.Name, Player = context.PlayerNumber }
             end
         end
     }
