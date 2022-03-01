@@ -396,7 +396,6 @@ end
 
 function GridInputController(context)
     if not context then return end
-    if not context.Direction and context.Menu then return end
 
     coords_direction = 0
     prev_row = GetCurrentRow(current_index.y)
