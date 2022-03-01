@@ -34,13 +34,13 @@ end
 
 
 function OptionsToggle(context)
-    if context.Input == "Options" then
+    if context.Menu == "OptionsNormal" or context.Menu == "OptionsMenu" or context.Menu == "OptionsPump" then
         if not OptionsListOpened(context.Player) then
             OpenOptionsList(context)
         end
     end
 
-    if context.Input == "PressSelect" then
+    if context.Menu == "Select" then
         if OptionsListOpened(context.Player) then
             CloseOptionsList(context)
         else
@@ -88,13 +88,13 @@ end
 function OptionsInputController(context)
     if not OptionsListOpened(context.Player) then return end
 
-    if context.Input == "Back" then
+    if context.Menu == "Back" or context.Menu == "Return" then
         BackOptionsList(context)
     else
         local current_stack = CurrentOptionsStack(context.Player)
         if not current_stack then return end
 
-        if context.Button == "Left" or context.Button == "Up" then
+        if context.Direction == "Left" or context.Direction == "Up" then
             if playerData[context.Player].field then
                 ChangeProperty(context)
             else
@@ -105,7 +105,7 @@ function OptionsInputController(context)
             end
         end
         
-        if context.Button == "Right" or context.Button == "Down" or context.Input == "Options" then
+        if context.Direction == "Right" or context.Direction == "Down" then
             if playerData[context.Player].field then
                 ChangeProperty(context)
             else
@@ -116,7 +116,7 @@ function OptionsInputController(context)
             end
         end
 
-        if context.Input == "Start" or context.Input == "Center" then
+        if context.Menu == "Start" then
             if playerData[context.Player].field then
                 BackOptionsList(context)
             else
@@ -182,15 +182,15 @@ function ChangeProperty(context)
     if field.Type == OptionsType.Value then
         if field.Choices and #field.Choices > 0 then
             local index = table.index( field.Choices, SelectMusic.playerOptions[context.Player][field.Name] ) or table.index( field.Choices, field.Default ) or 1
-            if context.Input == "Prev" then index = loop( index-1, 1, #field.Choices + 1) end
-            if context.Input == "Next" then index = loop( index+1, 1, #field.Choices + 1) end
+            if context.Direction == "Up" or context.Direction == "Left" then index = loop( index-1, 1, #field.Choices + 1) end
+            if context.Direction == "Down" or context.Direction == "Right" then index = loop( index+1, 1, #field.Choices + 1) end
             SelectMusic.playerOptions[context.Player][field.Name] = field.Choices[index]
 
         elseif field.Range then 
             local step = field.Name == "SpeedMod" and SelectMusic.playerOptions[context.Player].Increment or field.Range.Step or 1
             local value = SelectMusic.playerOptions[context.Player][field.Name] or field.Default
-            if context.Input == "Prev" then value = clamp( value-step, field.Range.Min, field.Range.Max) end
-            if context.Input == "Next" then value = clamp( value+step, field.Range.Min, field.Range.Max) end
+            if context.Direction == "Up" or context.Direction == "Left" then value = clamp( value-step, field.Range.Min, field.Range.Max) end
+            if context.Direction == "Down" or context.Direction == "Right" then value = clamp( value+step, field.Range.Min, field.Range.Max) end
             SelectMusic.playerOptions[context.Player][field.Name] = value
             
         end

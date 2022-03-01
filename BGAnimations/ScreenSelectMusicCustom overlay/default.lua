@@ -1,4 +1,4 @@
-local t = MenuInputActor()..{
+local t = Def.ActorFrame{
 	InitCommand=function(self)
 		ResetState()
 	end,
@@ -24,6 +24,8 @@ local t = MenuInputActor()..{
 	end
 }
 
+t[#t+1] = MenuInputActor()
+
 function ResetState()
 	ResetGridState()
 	for i,pn in ipairs(GAMESTATE:GetHumanPlayers()) do
@@ -34,9 +36,6 @@ end
 function MainController(self, context)
 	if SelectMusic.lockinput then return end
 
-	-- SCREENMAN:SystemMessage("["..context.Player.."]: "..context.Input)
-	
-	
 	if not OptionsListOpened(context.Player) then
 			if SelectMusic.state == 0 then GridInputController(context) 
 		elseif SelectMusic.state == 1 then StepsInputController(context) 
@@ -46,6 +45,7 @@ function MainController(self, context)
 	end
 	
 	OptionsToggle(context)
+	MESSAGEMAN:Broadcast("Debug", context)
 end
 
 t[#t+1] = LoadActor("components/grid")
@@ -57,5 +57,32 @@ t[#t+1] = LoadActor("components/options")
 t[#t+1] = LoadActor("components/header")
 t[#t+1] = LoadActor("components/info")
 t[#t+1] = LoadActor("components/audio")
+
+-- debug
+t[#t+1] = Def.BitmapText{
+	Font = Font.System,
+	Text = "",
+	InitCommand=function(self) 
+		self:halign(0):valign(0)
+		self:xy(SCREEN_LEFT + 8,SCREEN_TOP + 8)
+		self:shadowlength(1) 
+		self:zoom(0.5)
+		self:playcommand("Debug")
+	end,
+
+	DebugMessageCommand=function(self, context)
+		local d = {}
+		local pn = context and context.Player or "None"
+		d[#d+1] = "Last Input"
+		d[#d+1] = "Player: "..pn
+		d[#d+1] = "Menu: "..(context and context.Menu or "---")
+		d[#d+1] = "Direction: "..(context and context.Direction or "---")
+		d[#d+1] = "GameButton: "..(context and context.Button or "---")
+		d[#d+1] = "Players: "..table.concat( GAMESTATE:GetHumanPlayers(), ", ")
+		d[#d+1] = "Confirm P1: "..(SelectMusic.confirm[PLAYER_1] or 0)
+		d[#d+1] = "Confirm P2: "..(SelectMusic.confirm[PLAYER_2] or 0)
+		self:settext(table.concat(d, "\n"))
+	end
+}
 
 return t

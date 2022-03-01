@@ -138,7 +138,9 @@ function InitializeGrid()
 
     UpdateGridCoords()
     GridInputController({})
+    GAMESTATE:SetCurrentSong( current_item.type == ItemType.Song and current_item.content or nil )
     MESSAGEMAN:Broadcast("SortChanged", { item = current_item, sort = SelectMusic.currentSort })
+    MESSAGEMAN:Broadcast("GridSelected", { item = current_item, sort = SelectMusic.currentSort })
 end
 
 
@@ -394,35 +396,35 @@ end
 
 function GridInputController(context)
     if not context then return end
-    if context.Input == "PressSelect" or context.Input == "ReleaseSelect" then return end
+    if not context.Direction and context.Menu then return end
 
     coords_direction = 0
     prev_row = GetCurrentRow(current_index.y)
 
     local sort_changed = false
 
-    if context.Input == "Return" then
+    if context.Menu == "Back" then
         SCREENMAN:SetNewScreen("ScreenTitleMenu")
     end
 
-    if context.Button == "Up" then 
+    if context.Direction == "Up" then 
         current_index.y = current_index.y - 1 
         AdjustCursorPosition()
         coords_direction = -1
     end
     
-    if context.Button == "Down" then 
+    if context.Direction == "Down" then 
         current_index.y = current_index.y + 1   
         AdjustCursorPosition()
         coords_direction = 1
     end
     
-    if context.Button == "Left" then 
+    if context.Direction == "Left" then 
         current_index.x = clamp(current_index.x, 1, #prev_row) - 1 
         if current_index.x < 1 then WrapBackward() end
     end
     
-    if context.Button == "Right" or context.Input == "Options" then 
+    if context.Direction == "Right" then 
         current_index.x = clamp(current_index.x, 1, #prev_row) + 1 
         if current_index.x > #prev_row then WrapForward() end
     end
@@ -447,11 +449,7 @@ function GridInputController(context)
         SelectMusic.song = current_item.content
     end
 
-    if context.Input == "Sort" then 
-        SCREENMAN:SystemMessage("SORT")
-    end
-
-    if context.Input == "Center" or context.Input == "Start" then
+    if context.Menu == "Start" then
         if current_item then
             if current_item.type == ItemType.Sort and SelectMusic.currentSort ~= current_item.content then
                 SelectMusic.currentSort = current_item.content
@@ -490,7 +488,8 @@ function GridInputController(context)
         MESSAGEMAN:Broadcast("SortChanged", { item = current_item, sort = SelectMusic.currentSort })
     end
 
-    if current_item and not (context.Input == "Center" or context.Input == "Start") then
+    local input_dir = context.Direction and DirectionIndex(context.Direction) or 0
+    if current_item and math.abs(input_dir) > 0 then
         GAMESTATE:SetCurrentSong( current_item.type == ItemType.Song and current_item.content or nil )
         MESSAGEMAN:Broadcast("GridSelected", { item = current_item, sort = SelectMusic.currentSort })
     end

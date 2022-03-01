@@ -48,7 +48,8 @@ end
 
 
 function StepsInputController(context)
-    if context.Input == "Back" or context.Button == "Up" or context.Button == "Down" then 
+
+    if context.Menu == "Back" or context.Menu == "Return" then 
         SelectMusic.state = 0
         for i,pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             SelectMusic.confirm[pn] = 0
@@ -57,7 +58,7 @@ function StepsInputController(context)
         return
     end
 
-    if context.Input == "Prev" then
+    if context.Direction == "Up" or context.Direction == "Left" then
         local index = SelectMusic.stepsIndex[context.Player] - 1
         if index < 1 then
             index = #SelectMusic.steps
@@ -69,7 +70,7 @@ function StepsInputController(context)
         MESSAGEMAN:Broadcast("StepsChanged", context )
     end
     
-    if context.Input == "Next" or context.Input == "Options" then
+    if context.Direction == "Down" or context.Direction == "Right"  then
         local index = SelectMusic.stepsIndex[context.Player] + 1
         if index > #SelectMusic.steps then
             index = 1
@@ -81,7 +82,7 @@ function StepsInputController(context)
         MESSAGEMAN:Broadcast("StepsChanged", context )
     end
 
-    if context.Input == "Start" or context.Input == "Center" then
+    if context.Menu == "Start" then
 
         if SelectMusic.confirm[context.Player] < 1 then
             SelectMusic.confirm[context.Player] = 1
@@ -529,8 +530,8 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             end,
 
             StepsChangedMessageCommand=function(self, context)
-                if context and context.Input and context.Player then
-                    if context.Player == pn and ((context.Input == "Prev" and arrow == -1) or ((context.Input == "Next" or context.Input == "Options") and arrow == 1)) then
+                if context and context.Direction and context.Player and context.Player == pn then
+                    if DirectionIndex(context.Direction) == arrow then
                         self:finishtweening()
                         self:diffusealpha(1)
                         self:decelerate(0.25)
