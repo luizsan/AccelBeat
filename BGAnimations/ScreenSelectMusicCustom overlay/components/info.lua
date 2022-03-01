@@ -24,6 +24,9 @@ t[#t+1] = Def.Sprite{
             elseif context.item.type == ItemType.Sort then
                 self:setstate(2)
                 self:zoom(0.666666)
+            elseif context.item.type == ItemType.Filter then
+                self:setstate(3)
+                self:zoom(0.666666)
             end
         end
     end,
@@ -43,12 +46,10 @@ t[#t+1] = Def.Sprite{
     GridSelectedMessageCommand=function(self,context)
         if context and context.item then
             if context.item.type == ItemType.Song then
-                self:setstate(3)
+                self:setstate(4)
                 self:visible(true)
-            elseif context.item.type == ItemType.Folder then
+            else
                 self:visible(false)
-            elseif context.item.type == ItemType.Sort then
-                self:setstate(5)
             end
         end
     end,
@@ -67,7 +68,10 @@ t[#t+1] = Def.BitmapText{
         self:shadowcolor( Color.White )
         self:shadowlengthy(-2)
     end,
-    GridSelectedMessageCommand=function(self,context)
+
+    SortChangedMessageCommand=function(self,context) self:playcommand("Refresh", context) end,
+    GridSelectedMessageCommand=function(self,context) self:playcommand("Refresh", context) end,
+    RefreshCommand=function(self,context)
         if not context or not context.item or not context.item.type then return end
         if context.item.type == ItemType.Song then
             self:settext( context.item.content:GetMainTitle(), context.item.content:GetTranslitMainTitle() )
@@ -77,7 +81,9 @@ t[#t+1] = Def.BitmapText{
             else
                 self:settext( context.item.content )
             end
-        elseif context.item.type == ItemType.Sort then
+        elseif context.item.type == ItemType.Filter then
+            self:settext( context.filter )
+        else
             self:settext( context.item.content )
         end
     end
@@ -103,6 +109,8 @@ t[#t+1] = Def.BitmapText{
             self:settext( context.item.num_songs.." songs" )
         elseif context.item.type == ItemType.Sort then
             self:settext( "Sort Mode")
+        elseif context.item.type == ItemType.Filter then
+            self:settext( "Filter Mode" )
         end
     end
 }

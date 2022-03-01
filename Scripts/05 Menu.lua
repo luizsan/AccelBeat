@@ -10,6 +10,10 @@ SelectMusic = {
 	-- applies to every sort mode except "All"
     currentFolder = "",	
 
+	-- current filter
+	-- only show steps that match criteria
+	currentFilter = FilterMode.All,
+
 	-- 0: music
 	-- 1: steps
 	state = 0,
@@ -52,5 +56,6 @@ function RememberGrid()
         local profile_dir = GetPlayerOrMachineProfileDir(master)
         LoadModule("Config.Save.lua")("SortMode", SelectMusic.currentSort, profile_dir.."/"..ThemeConfigDir)
         LoadModule("Config.Save.lua")("Folder", SelectMusic.currentFolder, profile_dir.."/"..ThemeConfigDir)
+        LoadModule("Config.Save.lua")("FilterMode", SelectMusic.currentFilter, profile_dir.."/"..ThemeConfigDir)
     end
 end

@@ -1,33 +1,37 @@
-function FilterSongs(songs)
+-- stepstype that requires both sides
+local _multi = {
+    "Double",
+    "Couple",
+    "Halfdouble",
+    "Routine"
+}
+
+function FilterSongs(songs, sides)
     local filtered = {}
-    local steps = {}
-    
-    for i = 1, #songs do
-        steps = FilterSteps( songs[i] )
-        if #steps > 0 then
-            filtered[#filtered+1] = songs[i]
+    if songs then
+        for i = 1, #songs do
+            local steps = FilterSteps( songs[i], sides )
+            if #steps > 0 then
+                filtered[#filtered+1] = songs[i]
+            end
         end
     end
-
-    if #filtered == 0 then filtered = {} end
     return filtered
 end
 
 
-function FilterSteps(song)
+function FilterSteps(song, sides)
     local filtered = {}
-    local steps = song:GetAllSteps()
+    local steps = song and song:GetAllSteps() or nil
     if song and steps then
         for i = 1, #steps do
-            if steps[i] and steps[i]:GetMeter() > 0 and EligibleSteps(steps[i]) then
+            if steps[i] and steps[i]:GetMeter() > 0 and EligibleSteps(steps[i], sides) then
                 filtered[#filtered+1] = steps[i]
             end
         end
         table.sort(filtered,function(a,b) return SortSteps(a,b) end)
-        return filtered
-    else
-        return {}
     end
+    return filtered
 end
 
 
@@ -70,8 +74,18 @@ function SortSteps(a,b)
     end
 end
 
+
+function SidesRequired(stepstype)
+    for i, s in ipairs(_multi) do
+        if string.find(stepstype, s) then
+            return 2
+        end
+    end
+    return 1
+end
+
 -- improve this later
-function EligibleSteps(step)
+function EligibleSteps(step, sides)
     local st = step:GetStepsType()
 
     -- do not show steps from games other than the current
@@ -79,23 +93,15 @@ function EligibleSteps(step)
 
     local type = ToEnumShortString(st)
     local joined = GAMESTATE:GetNumSidesJoined()
-
-    local multi = {
-        "Double",
-        "Couple",
-        "Halfdouble",
-        "Routine"
-    }
     
-    local sides_required = 1
-
-    for i,s in ipairs(multi) do
-        if string.find(type, s) then
-            sides_required = 2
-        end
+    local sides_required = SidesRequired(type)
+    
+    if sides then
+        if sides == FilterMode.Singles and sides_required == 2 then return false end
+        if sides == FilterMode.Doubles and sides_required == 1 then return false end
     end
 
-    if joined > 1 and sides_required == joined then 
+    if joined > 1 and joined == sides_required then 
         return false 
     end
 

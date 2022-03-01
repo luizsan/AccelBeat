@@ -6,10 +6,17 @@ SortMode = {
     Level = "Level"
 }
 
+FilterMode = {
+    All = "All",
+    Singles = "Singles",
+    Doubles = "Doubles",
+}
+
 ItemType = {
     Song = "Song",
     Folder = "Folder",
     Sort = "Sort",
+    Filter = "Filter",
 }
 
 AlphabetSort = {

@@ -10,6 +10,7 @@ local MaximumRows = 15
 local MaximumPerRow = {
     Song = 5,
     Folder = 1,
+    Filter = 1,
     Sort = 3
 }
 
@@ -19,6 +20,7 @@ local Grid = {
         Song = { x = 180, y = 135 },
         Folder = { x = 500, y = 56 },
         Sort = { x = 192, y = 48 },
+        Filter = { x = 256, y = 48 },
     },
     spacing = { x = 24, y = 12 },
     offset = { x = 0, y = 24 },
@@ -27,6 +29,7 @@ local Grid = {
         Song = BoostColor( Color.White, 0.4 ),
         Folder = { 0.090196, 0.0223529, 0.6, 1 },
         Sort = { 0.184313, 0.447058, 0.749019, 1 },
+        Filter = { 0.5, 0.3, 0.9, 1 },
     },
 }
 
@@ -95,10 +98,17 @@ function InitializeGrid()
 
     local pref_sort = LoadModule("Config.Load.lua")("SortMode", profile_dir.."/"..ThemeConfigDir)
     local pref_folder = LoadModule("Config.Load.lua")("Folder", profile_dir.."/"..ThemeConfigDir)
+    local pref_filter = LoadModule("Config.Load.lua")("FilterMode", profile_dir.."/"..ThemeConfigDir)
 
     if pref_sort then
         SelectMusic.currentSort = pref_sort
         SelectMusic.currentFolder = pref_folder
+    end
+
+    if pref_filter and GAMESTATE:GetNumSidesJoined() < 2 then
+        SelectMusic.currentFilter = pref_filter
+    else
+        SelectMusic.currentFilter = FilterMode.All
     end
 
     LoadData()
@@ -139,8 +149,8 @@ function InitializeGrid()
     UpdateGridCoords()
     GridInputController({})
     GAMESTATE:SetCurrentSong( current_item.type == ItemType.Song and current_item.content or nil )
-    MESSAGEMAN:Broadcast("SortChanged", { item = current_item, sort = SelectMusic.currentSort })
-    MESSAGEMAN:Broadcast("GridSelected", { item = current_item, sort = SelectMusic.currentSort })
+    MESSAGEMAN:Broadcast("SortChanged", { item = current_item, sort = SelectMusic.currentSort, filter = SelectMusic.currentFilter })
+    MESSAGEMAN:Broadcast("GridSelected", { item = current_item, sort = SelectMusic.currentSort, filter = SelectMusic.currentFilter })
 end
 
 
@@ -267,8 +277,8 @@ end
 
 
 function BuildItems()
+    SelectMusic.currentItems = nil
     SelectMusic.currentItems = {}
-    current_songs = {}
 
     -- sort modes
     table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.All })
@@ -277,45 +287,66 @@ function BuildItems()
     table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Group })
     table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Level })
 
+    -- filter
+    if GAMESTATE:GetNumSidesJoined() < 2 then
+        table.insert( SelectMusic.currentItems, { type = ItemType.Filter, content = SelectMusic.currentFilter })
+    end
+
     -- all songs
     if SelectMusic.currentSort == SortMode.All then
-        current_songs = song_data.all
-        AddSongsToGrid(current_songs)
+        local filtered_songs = FilterSongs( song_data.all, SelectMusic.currentFilter )
+        AddSongsToGrid( filtered_songs )
 
     -- folders
     elseif SelectMusic.currentSort == SortMode.Group then
         for i, folder in ipairs(song_folders) do 
-            if song_data.group[folder] and #song_data.group[folder] > 0 then
-                table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = folder, num_songs = song_data.group[folder] and #song_data.group[folder] or 0 })
-                if SelectMusic.currentFolder and SelectMusic.currentFolder == folder and song_data.group[SelectMusic.currentFolder] then
-                    AddSongsToGrid( song_data.group[SelectMusic.currentFolder] )
+
+            local filtered_songs = FilterSongs( song_data.group[folder], SelectMusic.currentFilter )
+            if #filtered_songs > 0 then
+                table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = folder, num_songs = #filtered_songs })
+                if SelectMusic.currentFolder and SelectMusic.currentFolder == folder then
+                    AddSongsToGrid( filtered_songs )
                 end
             end
         end
 
+        
     elseif SelectMusic.currentSort == SortMode.Title then 
         for i, keys in ipairs( AlphabetSort ) do 
-            table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = keys, num_songs = song_data.title[keys] and #song_data.title[keys] or 0 })
-            if SelectMusic.currentFolder and SelectMusic.currentFolder == keys and song_data.title[keys] then
-                AddSongsToGrid( song_data.title[keys] )
+
+            local filtered_songs = FilterSongs( song_data.title[keys], SelectMusic.currentFilter )
+            if #filtered_songs > 0 then
+                table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = keys, num_songs = #filtered_songs })
+                if SelectMusic.currentFolder and SelectMusic.currentFolder == keys then
+                    AddSongsToGrid( filtered_songs )
+                end
             end
         end
 
     elseif SelectMusic.currentSort == SortMode.Artist then
         for i, keys in ipairs( AlphabetSort ) do 
-            table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = keys, num_songs = song_data.artist[keys] and #song_data.artist[keys] or 0 })
-            if SelectMusic.currentFolder and SelectMusic.currentFolder == keys and song_data.artist[keys] then
-                AddSongsToGrid( song_data.artist[keys] )
+
+            local filtered_songs = FilterSongs( song_data.artist[keys], SelectMusic.currentFilter )
+            if #filtered_songs > 0 then
+                table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = keys, num_songs = #filtered_songs })
+                if SelectMusic.currentFolder and SelectMusic.currentFolder == keys then
+                    AddSongsToGrid( filtered_songs )
+                end
             end
         end
 
     elseif SelectMusic.currentSort == SortMode.Level then
         for i, v in ipairs( song_levels ) do 
-            table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = v, num_songs = song_data.level[v] and #song_data.level[v] or 0 })
-            if SelectMusic.currentFolder and SelectMusic.currentFolder == v and song_data.level[v] and #song_data.level[v] > 0 then
-                AddSongsToGrid( song_data.level[v] )
+
+            local filtered_songs = FilterSongs( song_data.level[v], SelectMusic.currentFilter )
+            if #filtered_songs > 0 then
+                table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = v, num_songs = #filtered_songs })
+                if SelectMusic.currentFolder and SelectMusic.currentFolder == v then
+                    AddSongsToGrid( filtered_songs )
+                end
             end
         end
+
     end
     
 end
@@ -463,6 +494,18 @@ function GridInputController(context)
                 end
             elseif current_item.type == ItemType.Song then
                 SetSong( current_item.content )
+
+            elseif current_item.type == ItemType.Filter then
+
+                -- I'm not proud of this
+                if SelectMusic.currentFilter == FilterMode.All then 
+                    SelectMusic.currentFilter = FilterMode.Singles 
+                elseif SelectMusic.currentFilter == FilterMode.Singles then 
+                    SelectMusic.currentFilter = FilterMode.Doubles
+                elseif SelectMusic.currentFilter == FilterMode.Doubles then 
+                    SelectMusic.currentFilter = FilterMode.All
+                end
+                sort_changed = true
             end
             
             -- deep copy data to save item position after grid is changed
@@ -483,14 +526,21 @@ function GridInputController(context)
     UpdateGridCoords()
     MESSAGEMAN:Broadcast("GridScroll")
 
+    local params = { 
+        item = current_item, 
+        sort = SelectMusic.currentSort, 
+        folder = SelectMusic.currentFolder, 
+        filter = SelectMusic.currentFilter 
+    }
+
     if sort_changed then
-        MESSAGEMAN:Broadcast("SortChanged", { item = current_item, sort = SelectMusic.currentSort })
+        MESSAGEMAN:Broadcast("SortChanged", params)
     end
 
     local input_dir = context.Direction and DirectionIndex(context.Direction) or 0
     if current_item and math.abs(input_dir) > 0 then
         GAMESTATE:SetCurrentSong( current_item.type == ItemType.Song and current_item.content or nil )
-        MESSAGEMAN:Broadcast("GridSelected", { item = current_item, sort = SelectMusic.currentSort })
+        MESSAGEMAN:Broadcast("GridSelected", params)
     end
 end
 
@@ -511,10 +561,17 @@ end
 function SetSong(song)
     GAMESTATE:SetCurrentSong(song)
     SelectMusic.state = 1
-    SelectMusic.steps = FilterSteps(song)
+    SelectMusic.steps = FilterSteps(song, SelectMusic.currentFilter)
 
-    MESSAGEMAN:Broadcast("SongChosen", { item = current_item, sort = SelectMusic.currentSort, folder = SelectMusic.currentFolder })
-    MESSAGEMAN:Broadcast("StateChanged", { item = current_item, sort = SelectMusic.currentSort, folder = SelectMusic.currentFolder })
+    local context = { 
+        item = current_item, 
+        sort = SelectMusic.currentSort, 
+        folder = SelectMusic.currentFolder, 
+        filter = SelectMusic.currentFilter 
+    }
+
+    MESSAGEMAN:Broadcast("SongChosen", context)
+    MESSAGEMAN:Broadcast("StateChanged", context)
 end
 
 
@@ -678,12 +735,14 @@ for y = 1, Grid.slots.y do
                         --     end
                         -- else
                             self:Load(THEME:GetPathG("", "patterns/noise"))
-                            self:customtexturerect(0,0, 128 / self:GetWidth(), 128 / self:GetHeight())
-                            self:texcoordvelocity(80,120)
+
                         -- end
                     end
         
                     self:scaletoclipped(Grid.size.Song.x, Grid.size.Song.y)
+                    self:customtexturerect(0,0, 80 / self:GetWidth(), 40 / self:GetHeight())
+                    self:texcoordvelocity(80,120)
+
                     self:diffuse( selected and Color.White or Grid.colors.Song )
                     self:glow( selected and {1,1,1,1} or {0,0,0,0} )
                 end,
@@ -749,6 +808,8 @@ for y = 1, Grid.slots.y do
                             self:wrapwidthpixels( Grid.size[item.type].x * 1.5 - 32)
                             if item.type == ItemType.Folder and SelectMusic.currentSort == SortMode.Level then
                                 self:settext( "Level "..item.content )
+                            elseif item.type == ItemType.Filter then
+                                self:settext( "Filter: "..item.content )
                             else
                                 self:settext( item.content )
                             end

@@ -164,7 +164,7 @@ t[#t+1] = Def.ActorFrame{
             self:xy(8, 2)
         end,
         SortChangedMessageCommand=function(self,context)
-            self:settext( context.sort )
+            self:settextf( "%s %s", context.sort, context.filter ~= "All" and "("..context.filter..")" or "" )
             context.text = self
             MESSAGEMAN:Broadcast("SortTextChanged", context)
         end,
