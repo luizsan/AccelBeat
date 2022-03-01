@@ -50,12 +50,18 @@ end
 function StepsInputController(context)
 
     if context.Menu == "Back" or context.Menu == "Return" then 
-        SelectMusic.state = 0
-        for i,pn in ipairs(GAMESTATE:GetHumanPlayers()) do
-            SelectMusic.confirm[pn] = 0
+        if SelectMusic.confirm[context.Player] > 0 then
+            SelectMusic.confirm[context.Player] = 0
+            MESSAGEMAN:Broadcast("Confirm", context )
+            return
+        else
+            SelectMusic.state = 0
+            for i,pn in ipairs(GAMESTATE:GetHumanPlayers()) do
+                SelectMusic.confirm[pn] = 0
+            end
+            MESSAGEMAN:Broadcast("StateChanged")
+            return
         end
-        MESSAGEMAN:Broadcast("StateChanged")
-        return
     end
 
     if context.Direction == "Up" or context.Direction == "Left" then
@@ -434,6 +440,24 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             self:x(114 * pnSide(pn))
             self:shadowlength(1)
             self:diffuse( BoostColor( Color.White, 0.333333 ))
+        end,
+    }
+
+    -- ready
+    sel[#sel+1] = Def.BitmapText{
+        Text = "READY!",
+        Font = Font.UIHeavy,
+        InitCommand=function(self)
+            self:zoom(0.35)
+            self:halign(pnAlign(OtherPlayer[pn]))
+            self:y(-67)
+            self:x(114 * -pnSide(pn))
+            self:shadowlength(1)
+            self:diffuse( 1,0.8,0.4,1 )
+        end,
+        StateChangedMessageCommand=function(self) self:visible(false) end,
+        ConfirmMessageCommand=function(self)
+            self:visible( SelectMusic.confirm[pn] > 0)
         end,
     }
 
