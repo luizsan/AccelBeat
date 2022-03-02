@@ -66,6 +66,7 @@ function MenuInputMaster(event)
 end
 
 function Menu(event)
+    if _specialKeys.CTRL then return end
     if event.type ~= "InputEventType_Release" then
         local context = {
             Menu = _menu[event.button] or event.button,
