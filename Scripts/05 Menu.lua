@@ -14,6 +14,9 @@ SelectMusic = {
 	-- only show steps that match criteria
 	currentFilter = FilterMode.All,
 
+	-- search results
+	searchResults = {},
+
 	-- 0: music
 	-- 1: steps
 	state = 0,

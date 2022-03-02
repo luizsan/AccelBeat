@@ -55,8 +55,6 @@ local song_data = {}
 local song_folders = {}
 local song_levels = {}
 
-local search_results = {}
-
 local current_rows = {}
 local current_songs = {}
 local current_index = { x = 1, y = 1 }
@@ -304,7 +302,7 @@ function BuildItems()
 
     -- all songs
     elseif SelectMusic.currentSort == SortMode.Search then
-        local filtered_songs = FilterSongs( search_results, SelectMusic.currentFilter )
+        local filtered_songs = FilterSongs( SelectMusic.searchResults, SelectMusic.currentFilter )
         table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = "Search Results", num_songs = #filtered_songs, blocked = true })
         AddSongsToGrid( filtered_songs )
 
@@ -463,21 +461,21 @@ function SearchGrid(query)
     end
     
     -- search
-    search_results = nil
-    search_results = {}
+    SelectMusic.searchResults = nil
+    SelectMusic.searchResults = {}
 
     for i, song in ipairs( song_data.all ) do
         if string.find( song:GetTranslitFullTitle():lower(), query) then 
-            search_results[#search_results+1] = song
+            SelectMusic.searchResults[#SelectMusic.searchResults + 1] = song
             
         elseif string.find( song:GetDisplayFullTitle():lower(), query) then
-            search_results[#search_results+1] = song
+            SelectMusic.searchResults[#SelectMusic.searchResults + 1] = song
             
         elseif string.find( song:GetTranslitArtist():lower(), query) then 
-            search_results[#search_results+1] = song
+            SelectMusic.searchResults[#SelectMusic.searchResults + 1] = song
             
         elseif string.find( song:GetDisplayArtist():lower(), query) then
-            search_results[#search_results+1] = song
+            SelectMusic.searchResults[#SelectMusic.searchResults + 1] = song
             
         end
     end
@@ -486,14 +484,14 @@ function SearchGrid(query)
     table.insert( SelectMusic.currentItems, { 
         type = ItemType.Folder, 
         content = "Search Results", 
-        num_songs = #search_results, 
+        num_songs = #SelectMusic.searchResults, 
         blocked = true,
     })
 
-    AddSongsToGrid(search_results)
+    AddSongsToGrid(SelectMusic.searchResults)
     
     BuildRows()
-    current_index.y = #search_results > 0 and index_offset or 1
+    current_index.y = #SelectMusic.searchResults > 0 and index_offset or 1
     current_index.x = 1
     
     SelectMusic.currentRow = GetCurrentRow(current_index.y)
