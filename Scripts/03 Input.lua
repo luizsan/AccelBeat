@@ -42,7 +42,30 @@ local _codeQueue = {
     [PLAYER_2] = nil,
 }
 
+local _specialKeys = {
+    SHIFT = false,
+    CTRL = false,
+    ALT = false,
+}
+
+function SpecialKeys(event)
+    for key, value in pairs(_specialKeys) do
+        if event.DeviceInput.button:find(key:lower()) then
+            if event.type == "InputEventType_FirstPress" then
+                _specialKeys[key] = true
+            elseif event.type == "InputEventType_Release" then
+                _specialKeys[key] = false
+            end
+        end
+    end
+end
+
 function MenuInputMaster(event)
+    Search(event)
+    Menu(event)
+end
+
+function Menu(event)
     if event.type ~= "InputEventType_Release" then
         local context = {
             Menu = _menu[event.button] or event.button,
@@ -55,6 +78,12 @@ function MenuInputMaster(event)
             MESSAGEMAN:Broadcast("MenuInput", context)
             RunCodeQueue(context)
         end
+    end
+end
+
+function Search(event)
+    if _specialKeys.CTRL and event.DeviceInput.button == "DeviceButton_f" then
+        MESSAGEMAN:Broadcast("Search")
     end
 end
 
@@ -79,8 +108,18 @@ end
 
 function MenuInputActor()
     return Def.ActorFrame{
-        OnCommand=function(self) SCREENMAN:GetTopScreen():AddInputCallback( MenuInputMaster )  end,
-        OffCommand=function(self) SCREENMAN:GetTopScreen():RemoveInputCallback( MenuInputMaster ) end,
+        OnCommand=function(self) 
+            _specialKeys.SHIFT = false
+            _specialKeys.CTRL = false
+            _specialKeys.ALT = false
+            SCREENMAN:GetTopScreen():AddInputCallback( SpecialKeys )  
+            SCREENMAN:GetTopScreen():AddInputCallback( MenuInputMaster )  
+        end,
+
+        OffCommand=function(self) 
+            SCREENMAN:GetTopScreen():RemoveInputCallback( SpecialKeys ) 
+            SCREENMAN:GetTopScreen():RemoveInputCallback( MenuInputMaster ) 
+        end,
 
         -- code messages are executed before input callback
         -- queue the code so it's executed along with the input callback (scroll up)

@@ -1,5 +1,5 @@
 function string.startswith(s, pattern)
-    if not s then return false
+    if not s then return false end
     return string.sub(s, 1, string.len(pattern)) == pattern
 end
 

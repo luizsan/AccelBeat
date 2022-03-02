@@ -34,7 +34,7 @@ end
 
 
 function OptionsToggle(context)
-    if context.Menu == "OptionsNormal" or context.Menu == "OptionsMenu" or context.Menu == "OptionsPump" then
+    if string.startswith( context.Menu, "Options" ) then
         if not OptionsListOpened(context.Player) then
             OpenOptionsList(context)
         end
@@ -255,7 +255,6 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         OnCommand=function(self) 
             self:diffusealpha(0)
             self:playcommand("OptionsList") 
-            self:y(8)
         end,
 
         OptionsListMessageCommand=function(self, context) 
@@ -269,13 +268,13 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     -- background
     s[#s+1] = Def.Quad{
         InitCommand=function(self)
-            self:diffuse( BoostColor( Color.White, 0.1 ))
+            self:diffuse( BoostColor( PlayerColor(pn), 0.1 ))
             self:diffusealpha(0.9)
             self:xy( SCREEN_CENTER_X, SCREEN_CENTER_Y)
             self:halign(1)
             self:zoomto( SCREEN_WIDTH * 0.5 * pnSide( OtherPlayer[pn]), SCREEN_HEIGHT )
             self:cropright(0.2)
-            self:faderight(0.15)
+            self:faderight(0.5)
         end
     }
 
@@ -288,7 +287,7 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                 if context and context.Player ~= pn then return end
 
                 local pos_x = SCREEN_CENTER_X + (430 * pnSide(pn))
-                local pos_y = SCREEN_CENTER_Y + (List.maxItems * 0.5 - i) * -List.spacing
+                local pos_y = SCREEN_CENTER_Y + (List.maxItems * 0.5 - i) * -List.spacing + 10
                 
                 local target_alpha = 1
                 
@@ -399,9 +398,11 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         r[#r+1] = Def.BitmapText{
             Font = Font.UINormal,
             InitCommand=function(self)
-                self:zoom(0.475)
+                self:zoom(0.45)
                 self:halign(0)
                 self:xy( (List.width - 20) * -0.5, -3)
+                self:shadowlength(0.75)
+                self:shadowcolor(0,0,0,0.333333)
             end,
             
             OptionsListMessageCommand=function(self, context)
@@ -478,6 +479,7 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                 self:zoom(0.45)
                 self:halign(1)
                 self:xy( (List.width - 16) * 0.5, -1)
+                self:shadowlength(0.75)
                 self:settext( "..." )
             end,
 
