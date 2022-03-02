@@ -177,18 +177,20 @@ end
 
 function ChangeProperty(context)
     local field = playerData[context.Player].field
+
     if not field then return end
+    local options = SelectMusic.playerOptions[context.Player]
 
     if field.Type == OptionsType.Value then
         if field.Choices and #field.Choices > 0 then
-            local index = table.index( field.Choices, SelectMusic.playerOptions[context.Player][field.Name] ) or table.index( field.Choices, field.Default ) or 1
+            local index = table.index( field.Choices, options[field.Name] ) or table.index( field.Choices, field.Default ) or 1
             if context.Direction == "Up" or context.Direction == "Left" then index = loop( index-1, 1, #field.Choices + 1) end
             if context.Direction == "Down" or context.Direction == "Right" then index = loop( index+1, 1, #field.Choices + 1) end
             SelectMusic.playerOptions[context.Player][field.Name] = field.Choices[index]
 
         elseif field.Range then 
-            local step = field.Name == "SpeedMod" and SelectMusic.playerOptions[context.Player].Increment or field.Range.Step or 1
-            local value = SelectMusic.playerOptions[context.Player][field.Name] or field.Default
+            local step = field.Name == "SpeedMod" and options.Increment or field.Range.Step or 1
+            local value = options[field.Name] or field.Default
             if context.Direction == "Up" or context.Direction == "Left" then value = clamp( value-step, field.Range.Min, field.Range.Max) end
             if context.Direction == "Down" or context.Direction == "Right" then value = clamp( value+step, field.Range.Min, field.Range.Max) end
             SelectMusic.playerOptions[context.Player][field.Name] = value
@@ -199,7 +201,7 @@ function ChangeProperty(context)
         MESSAGEMAN:Broadcast("ChangeProperty", context)
         
     elseif field.Type == OptionsType.Toggle then
-        local index = table.index( field.Choices, SelectMusic.playerOptions[context.Player][field.Name] ) or table.index( field.Choices, field.Default ) or 1
+        local index = table.index( field.Choices, options[field.Name] ) or table.index( field.Choices, field.Default ) or 1
         index = loop( index+1, 1, #field.Choices + 1)
         SelectMusic.playerOptions[context.Player][field.Name] = field.Choices[index]
         
@@ -212,6 +214,7 @@ end
 function ChooseOption(context)
     local current_option = CurrentSelectedOption(context.Player)
     if current_option.Disabled then return end 
+
 
     if current_option.Type == OptionsType.Menu then
         context.menu = true
