@@ -57,6 +57,7 @@ t[#t+1] = LoadActor("components/options")
 t[#t+1] = LoadActor("components/header")
 t[#t+1] = LoadActor("components/info")
 t[#t+1] = LoadActor("components/audio")
+t[#t+1] = LoadActor("components/search")
 
 -- debug
 t[#t+1] = Def.BitmapText{

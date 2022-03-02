@@ -3,7 +3,8 @@ SortMode = {
     Title = "Title",
     Artist = "Artist",
     Group = "Group",
-    Level = "Level"
+    Level = "Level",
+    Search = "Search"
 }
 
 FilterMode = {

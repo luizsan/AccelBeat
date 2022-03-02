@@ -55,6 +55,8 @@ local song_data = {}
 local song_folders = {}
 local song_levels = {}
 
+local search_results = {}
+
 local current_rows = {}
 local current_songs = {}
 local current_index = { x = 1, y = 1 }
@@ -276,6 +278,7 @@ function AddSongsToGrid(list)
 end
 
 
+
 function BuildItems()
     SelectMusic.currentItems = nil
     SelectMusic.currentItems = {}
@@ -290,11 +293,19 @@ function BuildItems()
     -- filter
     if GAMESTATE:GetNumSidesJoined() < 2 then
         table.insert( SelectMusic.currentItems, { type = ItemType.Filter, content = SelectMusic.currentFilter })
+    else
+        SelectMusic.currentFilter = FilterMode.All
     end
 
     -- all songs
     if SelectMusic.currentSort == SortMode.All then
         local filtered_songs = FilterSongs( song_data.all, SelectMusic.currentFilter )
+        AddSongsToGrid( filtered_songs )
+
+    -- all songs
+    elseif SelectMusic.currentSort == SortMode.Search then
+        local filtered_songs = FilterSongs( search_results, SelectMusic.currentFilter )
+        table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = "Search Results", num_songs = #filtered_songs, blocked = true })
         AddSongsToGrid( filtered_songs )
 
     -- folders
@@ -348,7 +359,7 @@ function BuildItems()
         end
 
     end
-    
+
 end
 
 
@@ -425,6 +436,90 @@ function UpdateGridCoords()
 end
 
 
+function SearchGrid(query)
+    if not query or query == "" then return end
+
+    SelectMusic.currentItems = nil
+    SelectMusic.currentItems = {}
+    SelectMusic.currentFilter = FilterMode.All
+    SelectMusic.currentSort = SortMode.Search
+    SelectMusic.song = nil
+    
+    GAMESTATE:SetCurrentSong(nil)
+
+    -- sort modes
+    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.All })
+    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Title })
+    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Artist })
+    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Group })
+    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Level })
+    
+    local index_offset = 4
+    
+    -- filter
+    if GAMESTATE:GetNumSidesJoined() < 2 then
+        table.insert( SelectMusic.currentItems, { type = ItemType.Filter, content = SelectMusic.currentFilter })
+        index_offset = 5
+    end
+    
+    -- search
+    search_results = nil
+    search_results = {}
+
+    for i, song in ipairs( song_data.all ) do
+        if string.find( song:GetTranslitFullTitle():lower(), query) then 
+            search_results[#search_results+1] = song
+            
+        elseif string.find( song:GetDisplayFullTitle():lower(), query) then
+            search_results[#search_results+1] = song
+            
+        elseif string.find( song:GetTranslitArtist():lower(), query) then 
+            search_results[#search_results+1] = song
+            
+        elseif string.find( song:GetDisplayArtist():lower(), query) then
+            search_results[#search_results+1] = song
+            
+        end
+    end
+    
+    -- blocked folder
+    table.insert( SelectMusic.currentItems, { 
+        type = ItemType.Folder, 
+        content = "Search Results", 
+        num_songs = #search_results, 
+        blocked = true,
+    })
+
+    AddSongsToGrid(search_results)
+    
+    BuildRows()
+    current_index.y = #search_results > 0 and index_offset or 1
+    current_index.x = 1
+    
+    SelectMusic.currentRow = GetCurrentRow(current_index.y)
+    current_item = GetCurrentItem(SelectMusic.currentRow)
+    current_column = clamp(current_index.x, 1, #SelectMusic.currentRow)
+    
+    if current_item and current_item.type == ItemType.Song and current_item.content ~= nil then
+        SelectMusic.song = current_item.content
+        GAMESTATE:SetCurrentSong(SelectMusic.song)
+    end
+
+    local params = { 
+        item = current_item, 
+        sort = SelectMusic.currentSort, 
+        folder = SelectMusic.currentFolder, 
+        filter = SelectMusic.currentFilter 
+    }
+    
+    UpdateGridCoords()
+    MESSAGEMAN:Broadcast("GridScroll", params)
+    MESSAGEMAN:Broadcast("SortChanged", params)
+    MESSAGEMAN:Broadcast("GridSelected", params)
+
+end
+
+
 function GridInputController(context)
     if not context then return end
 
@@ -494,6 +589,8 @@ function GridInputController(context)
 
     if context.Menu == "Start" then
         if current_item then
+            if current_item.blocked then return end
+
             if current_item.type == ItemType.Sort and SelectMusic.currentSort ~= current_item.content then
                 SelectMusic.currentSort = current_item.content
                 sort_changed = true
