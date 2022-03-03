@@ -503,7 +503,7 @@ function GoToItem(row, column)
 
     SelectMusic.song = current_item and current_item.type == ItemType.Song and current_item.content or nil
     GAMESTATE:SetCurrentSong(SelectMusic.song)
-    
+
     UpdateGridCoords()
 
     local params = { 
@@ -578,10 +578,7 @@ function GridInputController(context)
 
     -- now redundant with AdjustCursorPosition() but might be useful in the future
     current_column = clamp(current_index.x, 1, #SelectMusic.currentRow)
-
-    if current_item and current_item.type and current_item.type == ItemType.Song then
-        SelectMusic.song = current_item.content
-    end
+    SelectMusic.song = current_item and current_item.type == ItemType.Song and current_item.content or nil
 
     if context.Menu == "Start" then
         if current_item then
@@ -632,9 +629,17 @@ function GridInputController(context)
     --     current_index.y = 0
     -- end
 
+    local params = { 
+        item = current_item, 
+        sort = SelectMusic.currentSort, 
+        folder = SelectMusic.currentFolder, 
+        filter = SelectMusic.currentFilter,
+        Direction = "Center"
+    }
+
     if context.Direction then 
         UpdateGridCoords()
-        MESSAGEMAN:Broadcast("GridScroll")
+        MESSAGEMAN:Broadcast("GridScroll", params)
     end
 
     if sort_changed then
@@ -644,7 +649,7 @@ function GridInputController(context)
     local input_dir = context.Direction and DirectionIndex(context.Direction) or 0
     if current_item and math.abs(input_dir) > 0 then
         GAMESTATE:SetCurrentSong( current_item.type == ItemType.Song and current_item.content or nil )
-        MESSAGEMAN:Broadcast("GridSelected")
+        MESSAGEMAN:Broadcast("GridSelected", params)
     end
 end
 
