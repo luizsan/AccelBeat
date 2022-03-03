@@ -13,7 +13,7 @@ t[#t+1] = Def.ActorFrame{
     RefreshCommand=function(self)
         self:stoptweening()
         self:decelerate(0.1)
-        self:zoomy( GAMESTATE:GetCurrentSong() and SelectMusic.state == 0 and 1 or 0 )
+        self:zoomy( SelectMusic.song ~= nil and SelectMusic.state == 0 and 1 or 0 )
     end,
 
     Def.Sprite{
@@ -69,12 +69,10 @@ t[#t+1] = Def.ActorFrame{
             self:y(2)
         end,
         GridSelectedMessageCommand=function(self,context)
-            local song = GAMESTATE:GetCurrentSong()
-            if song then
-                self:settext( song:GetGroupName() )
+            if SelectMusic.song then
+                self:settext( SelectMusic.song:GetGroupName() )
             end
-            context.text = self
-            MESSAGEMAN:Broadcast("GroupTextChanged", context)
+            MESSAGEMAN:Broadcast("GroupTextChanged", { text = self })
         end,
     },
 
@@ -163,10 +161,9 @@ t[#t+1] = Def.ActorFrame{
             self:strokecolor(0,0,0,0.2)
             self:xy(8, 2)
         end,
-        SortChangedMessageCommand=function(self,context)
-            self:settextf( "%s %s", context.sort, context.filter ~= "All" and "("..context.filter..")" or "" )
-            context.text = self
-            MESSAGEMAN:Broadcast("SortTextChanged", context)
+        SortChangedMessageCommand=function(self)
+            self:settextf( "%s %s", SelectMusic.currentSort, SelectMusic.currentFilter ~= "All" and "("..SelectMusic.currentFilter..")" or "" )
+            MESSAGEMAN:Broadcast("SortTextChanged", { text = self })
         end,
     },
 
