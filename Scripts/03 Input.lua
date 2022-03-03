@@ -48,6 +48,12 @@ local _specialKeys = {
     ALT = false,
 }
 
+function ReleaseSpecialKeys()
+    for key, value in pairs(_specialKeys) do
+        _specialKeys[key] = false
+    end
+end
+
 function SpecialKeys(event)
     for key, value in pairs(_specialKeys) do
         if event.DeviceInput.button:find(key:lower()) then
@@ -61,11 +67,13 @@ function SpecialKeys(event)
 end
 
 function MenuInputMaster(event)
+    SpecialKeys(event)
     Search(event)
     Menu(event)
 end
 
 function Menu(event)
+    if _specialKeys.ALT then return end
     if _specialKeys.CTRL then return end
     if event.type ~= "InputEventType_Release" then
         local context = {
@@ -113,12 +121,10 @@ function MenuInputActor()
             _specialKeys.SHIFT = false
             _specialKeys.CTRL = false
             _specialKeys.ALT = false
-            SCREENMAN:GetTopScreen():AddInputCallback( SpecialKeys )  
             SCREENMAN:GetTopScreen():AddInputCallback( MenuInputMaster )  
         end,
 
         OffCommand=function(self) 
-            SCREENMAN:GetTopScreen():RemoveInputCallback( SpecialKeys ) 
             SCREENMAN:GetTopScreen():RemoveInputCallback( MenuInputMaster ) 
         end,
 

@@ -11,6 +11,7 @@ local t = Def.ActorFrame{
             Question = "Test text entry",
             MaxInputLength = 255,
             OnOK = function(answer)
+                ReleaseSpecialKeys()
                 SearchGrid(answer)
             end,
         };
