@@ -52,13 +52,3 @@ SelectMusic = {
 	}
 
 }
-
-function RememberGrid()
-	local master = GAMESTATE:GetMasterPlayerNumber()
-    if PROFILEMAN:IsPersistentProfile(master) then
-        local profile_dir = GetPlayerOrMachineProfileDir(master)
-        LoadModule("Config.Save.lua")("SortMode", SelectMusic.currentSort, profile_dir.."/"..ThemeConfigDir)
-        LoadModule("Config.Save.lua")("Folder", SelectMusic.currentFolder, profile_dir.."/"..ThemeConfigDir)
-        LoadModule("Config.Save.lua")("FilterMode", SelectMusic.currentFilter, profile_dir.."/"..ThemeConfigDir)
-    end
-end

@@ -124,40 +124,6 @@ function CalculateNPS(pn)
 end
 
 
-function Confirm()
-    local master = GAMESTATE:GetMasterPlayerNumber()
-    if GAMESTATE:GetNumSidesJoined() > 1 then
-        GAMESTATE:SetCurrentStyle("versus")
-    else
-        -- if routine then
-        -- 
-        -- GAMESTATE:JoinPlayer( OtherPlayer[master] )
-        -- GAMESTATE:SetCurrentStyle("routine")
-        -- GAMESTATE:SetCurrentSteps( master, SelectMusic.playerSteps[master] )
-        -- GAMESTATE:SetCurrentSteps( OtherPlayer[master], SelectMusic.playerSteps[master] )
-        GAMESTATE:SetCurrentStyle("single")
-    end
-    
-    GAMESTATE:SetCurrentPlayMode("PlayMode_Regular")
-    GAMESTATE:SetCurrentSong( SelectMusic.song )
-
-    if PROFILEMAN:IsPersistentProfile(master) then
-        GAMESTATE:SetPreferredSong( SelectMusic.song )
-    else
-        GAMESTATE:SetPreferredSong( nil )
-    end
-    
-    for i,pn in ipairs(GAMESTATE:GetHumanPlayers()) do
-        GAMESTATE:SetCurrentSteps( pn, SelectMusic.playerSteps[pn] )
-        WriteOptionsTable(pn, SelectMusic.playerOptions[pn] )
-    end
-
-    RememberGrid()
-    SCREENMAN:PlayStartSound()
-    SCREENMAN:GetTopScreen():SetNextScreenName("ScreenGameplay"):StartTransitioningScreen("SM_GoToNextScreen")
-end
-
-
 -- for i, pn in ipairs({ PLAYER_1, PLAYER_2 }) do
 for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     
@@ -459,6 +425,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         StepsChangedMessageCommand=function(self) self:playcommand("Refresh") end,
         ConfirmMessageCommand=function(self) self:playcommand("Refresh") end,
         RefreshMessageCommand=function(self)
+            self:finishtweening()
             self:visible( SelectMusic.confirm[pn] > 0)
             self:diffuse( Color.White )
             self:linear(0.333333)

@@ -1,3 +1,5 @@
+local master = GAMESTATE:GetMasterPlayerNumber()
+
 local t = Def.ActorFrame{
 	InitCommand=function(self)
 		ResetState()
@@ -46,6 +48,47 @@ function MainController(self, context)
 	
 	OptionsToggle(context)
 	MESSAGEMAN:Broadcast("Debug", context)
+end
+
+function Confirm()
+    if GAMESTATE:GetNumSidesJoined() > 1 then
+        GAMESTATE:SetCurrentStyle("versus")
+    else
+        -- if routine then
+        -- 
+        -- GAMESTATE:JoinPlayer( OtherPlayer[master] )
+        -- GAMESTATE:SetCurrentStyle("routine")
+        -- GAMESTATE:SetCurrentSteps( master, SelectMusic.playerSteps[master] )
+        -- GAMESTATE:SetCurrentSteps( OtherPlayer[master], SelectMusic.playerSteps[master] )
+        GAMESTATE:SetCurrentStyle("single")
+    end
+    
+    GAMESTATE:SetCurrentPlayMode("PlayMode_Regular")
+    GAMESTATE:SetCurrentSong( SelectMusic.song )
+
+    for i,pn in ipairs(GAMESTATE:GetHumanPlayers()) do
+        GAMESTATE:SetCurrentSteps( pn, SelectMusic.playerSteps[pn] )
+    end
+
+    SaveSettings()
+    SCREENMAN:PlayStartSound()
+    SCREENMAN:GetTopScreen():SetNextScreenName("ScreenGameplay"):StartTransitioningScreen("SM_GoToNextScreen")
+end
+
+function SaveSettings()
+    if PROFILEMAN:IsPersistentProfile(master) then
+		GAMESTATE:SetPreferredSong(SelectMusic.song)
+
+		for i,pn in ipairs(GAMESTATE:GetHumanPlayers()) do
+			WriteOptionsTable(pn, SelectMusic.playerOptions[pn] )
+		end
+
+        local profile_dir = GetPlayerOrMachineProfileDir(master)
+        LoadModule("Config.Save.lua")("SortMode", SelectMusic.currentSort, profile_dir.."/"..ThemeConfigDir)
+        LoadModule("Config.Save.lua")("Folder", SelectMusic.currentFolder, profile_dir.."/"..ThemeConfigDir)
+	else
+		GAMESTATE:SetPreferredSong(nil)
+	end
 end
 
 t[#t+1] = LoadActor("components/grid")
