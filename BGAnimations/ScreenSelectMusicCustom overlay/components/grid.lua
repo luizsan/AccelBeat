@@ -98,16 +98,17 @@ function InitializeGrid()
 
     local pref_sort = LoadModule("Config.Load.lua")("SortMode", profile_dir.."/"..ThemeConfigDir)
     local pref_folder = LoadModule("Config.Load.lua")("Folder", profile_dir.."/"..ThemeConfigDir)
-    local pref_filter = LoadModule("Config.Load.lua")("FilterMode", profile_dir.."/"..ThemeConfigDir)
 
     if pref_sort then
-        SelectMusic.currentSort = pref_sort
-        SelectMusic.currentFolder = pref_folder
+        SelectMusic.currentFolder = pref_folder or preferred_song:GetGroupName()
+        if pref_sort == SortMode.Search and #SelectMusic.searchResults < 1 then
+            SelectMusic.currentSort = SortMode.Group
+        else
+            SelectMusic.currentSort = pref_sort
+        end
     end
 
-    if pref_filter and GAMESTATE:GetNumSidesJoined() < 2 then
-        SelectMusic.currentFilter = pref_filter
-    else
+    if GAMESTATE:GetNumSidesJoined() > 1 then
         SelectMusic.currentFilter = FilterMode.All
     end
 
@@ -441,9 +442,6 @@ function SearchGrid(query)
     SelectMusic.currentItems = {}
     SelectMusic.currentFilter = FilterMode.All
     SelectMusic.currentSort = SortMode.Search
-    SelectMusic.song = nil
-    
-    GAMESTATE:SetCurrentSong(nil)
 
     -- sort modes
     table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.All })
@@ -491,30 +489,33 @@ function SearchGrid(query)
     AddSongsToGrid(SelectMusic.searchResults)
     
     BuildRows()
-    current_index.y = #SelectMusic.searchResults > 0 and index_offset or 1
-    current_index.x = 1
-    
+    GoToItem( #SelectMusic.searchResults > 0 and index_offset or 1, 1 )
+    MESSAGEMAN:Broadcast("SortChanged")
+end
+
+function GoToItem(row, column)
+    current_index.y = row
+    current_index.x = column
+
     SelectMusic.currentRow = GetCurrentRow(current_index.y)
-    current_item = GetCurrentItem(SelectMusic.currentRow)
     current_column = clamp(current_index.x, 1, #SelectMusic.currentRow)
+    current_item = GetCurrentItem(SelectMusic.currentRow)
+
+    SelectMusic.song = current_item and current_item.type == ItemType.Song and current_item.content or nil
+    GAMESTATE:SetCurrentSong(SelectMusic.song)
     
-    if current_item and current_item.type == ItemType.Song and current_item.content ~= nil then
-        SelectMusic.song = current_item.content
-        GAMESTATE:SetCurrentSong(SelectMusic.song)
-    end
+    UpdateGridCoords()
 
     local params = { 
         item = current_item, 
         sort = SelectMusic.currentSort, 
         folder = SelectMusic.currentFolder, 
-        filter = SelectMusic.currentFilter 
+        filter = SelectMusic.currentFilter,
+        Direction = "Center"
     }
-    
-    UpdateGridCoords()
-    MESSAGEMAN:Broadcast("GridScroll", params)
-    MESSAGEMAN:Broadcast("SortChanged", params)
-    MESSAGEMAN:Broadcast("GridSelected", params)
 
+    MESSAGEMAN:Broadcast("GridScroll", params)  
+    MESSAGEMAN:Broadcast("GridSelected", params)  
 end
 
 
@@ -567,10 +568,7 @@ function GridInputController(context)
     -- // ========================================
     
     if context.Menu ~= nil and string.startswith( context.Menu, "Sort" ) then
-        current_index.y = 1
-        current_index.x = 1
-        context.Direction = "Center"
-        GAMESTATE:SetCurrentSong(nil)
+        GoToItem(1,1)
     end
 
     -- // ========================================
@@ -639,21 +637,14 @@ function GridInputController(context)
         MESSAGEMAN:Broadcast("GridScroll")
     end
 
-    local params = { 
-        item = current_item, 
-        sort = SelectMusic.currentSort, 
-        folder = SelectMusic.currentFolder, 
-        filter = SelectMusic.currentFilter 
-    }
-
     if sort_changed then
-        MESSAGEMAN:Broadcast("SortChanged", params)
+        MESSAGEMAN:Broadcast("SortChanged")
     end
 
     local input_dir = context.Direction and DirectionIndex(context.Direction) or 0
     if current_item and math.abs(input_dir) > 0 then
         GAMESTATE:SetCurrentSong( current_item.type == ItemType.Song and current_item.content or nil )
-        MESSAGEMAN:Broadcast("GridSelected", params)
+        MESSAGEMAN:Broadcast("GridSelected")
     end
 end
 
@@ -835,29 +826,34 @@ for y = 1, Grid.slots.y do
                     local selected = current_column == x and Grid.middle.y == y
                     local item = GetCurrentRow( y + current_index.y - Grid.middle.y )[x]
         
-                    if not item or item.type ~= ItemType.Song then 
-                        self:Load(nil)
-                    else
-                        local path = item.content:GetBannerPath()
-                        -- if path then
-                        --     if not BANNER_CACHE[path] then
-                        --         self:LoadFromCachedBanner(path)
-                        --         BANNER_CACHE[path] = self:GetTexture()
-                        --     else
-                        --         self:SetTexture( BANNER_CACHE[path] )
-                        --     end
-                        -- else
-                            self:Load(THEME:GetPathG("", "patterns/noise"))
+                    if item then
+                        if item.type == ItemType.Song then 
+                            local path = item.content:GetBannerPath()
+                            -- if path then
+                            --     if not BANNER_CACHE[path] then
+                            --         self:LoadFromCachedBanner(path)
+                            --         BANNER_CACHE[path] = self:GetTexture()
+                            --     else
+                            --         self:SetTexture( BANNER_CACHE[path] )
+                            --     end
+                            -- else
+                                self:Load(THEME:GetPathG("", "patterns/noise"))
 
-                        -- end
-                    end
+                            -- end
+                            self:scaletoclipped(Grid.size.Song.x, Grid.size.Song.y)
+                            self:customtexturerect(0,0, 80 / self:GetWidth(), 40 / self:GetHeight())
+                            self:texcoordvelocity(80,120)
         
-                    self:scaletoclipped(Grid.size.Song.x, Grid.size.Song.y)
-                    self:customtexturerect(0,0, 80 / self:GetWidth(), 40 / self:GetHeight())
-                    self:texcoordvelocity(80,120)
+                            self:diffuse( selected and Color.White or Grid.colors.Song )
+                            self:glow( selected and {1,1,1,1} or {0,0,0,0} )
 
-                    self:diffuse( selected and Color.White or Grid.colors.Song )
-                    self:glow( selected and {1,1,1,1} or {0,0,0,0} )
+                        elseif item.type == ItemType.Folder then
+                            self:Load(nil)
+                        end
+                    else
+                        self:Load(nil)
+                    end
+
                 end,
             },
             
