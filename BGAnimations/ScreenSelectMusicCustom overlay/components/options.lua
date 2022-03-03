@@ -1,6 +1,6 @@
 local List = {
     width = 250,
-    spacing = 28,
+    spacing = 30,
     maxItems = 9,
 }
 
@@ -281,6 +281,37 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         end
     }
 
+    -- s[#s+1] = Def.ActorFrame{
+    --     Def.Sprite{
+    --         Texture = THEME:GetPathG("", "selection_arrows"),
+    --         InitCommand=function(self)
+    --             self:zoom(0.5)
+    --             self:animate(0)
+    --             self:setstate(2)
+    --             self:halign(0.25)
+
+    --             local pos_x = SCREEN_CENTER_X + (430 * pnSide(pn)) + ( List.width * 0.5 + 8 )
+    --             local pos_y = SCREEN_CENTER_Y + List.spacing - 4
+    --             self:xy( pos_x, pos_y )
+    --         end,
+    --     },
+
+    --     Def.Sprite{
+    --         Texture = THEME:GetPathG("", "selection_arrows"),
+    --         InitCommand=function(self)
+    --             self:zoom(0.5)
+    --             self:zoomx(-0.5)
+    --             self:animate(0)
+    --             self:setstate(2)
+    --             self:halign(0.25)
+
+    --             local pos_x = SCREEN_CENTER_X + (430 * pnSide(pn)) - ( List.width * 0.5 + 8 )
+    --             local pos_y = SCREEN_CENTER_Y + List.spacing - 4
+    --             self:xy( pos_x, pos_y )
+    --         end,
+    --     }
+    -- }
+
     -- options
     for i = 1, List.maxItems do
 
@@ -332,39 +363,56 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         }
 
         -- background
-        r[#r+1] = Def.Quad{
-            InitCommand=function(self)
-                self:zoomto( List.width, List.spacing - 2)
-                --self:halign( pnAlign(pn) )
-            end,
+        r[#r+1] = Def.ActorFrame{
 
-            OptionsListMessageCommand=function(self, context)
-                if not context then return end
-                if not context.Player then return end
-                if context.Player ~= pn then return end
-                
-                if not playerData[pn].current or #playerData[pn].current < 1 then return end
-                local index = playerData[pn].index
-                local target = loop( index - List.middle + i, 1, #playerData[pn].current + 1)
-                local option = playerData[pn].current[target] or nil
-                
-                if List.middle == i then
-                    self:playcommand("GainFocus")
-                else
-                    self:playcommand("LoseFocus")
-                end
-            end,
+            --flat
+            Def.Quad{
+                InitCommand=function(self)
+                    self:zoomto( List.width + 3, List.spacing - 2)
+                    self:diffuse( Color.Black )
+                end,
+            },
 
-            GainFocusCommand=function(self)
-                self:diffuse( Color.Blue )
-                self:diffusealpha(1)
-            end,
+            --pattern
+            Def.Sprite{
+                Texture = THEME:GetPathG("", "patterns/diagonal"),
+                InitCommand=function(self)
+                    self:zoomto( List.width + 3, List.spacing - 2)
+                    if List.middle == i then
+                        self:customtexturerect( 0, 0, self:GetWidth() / 128 * 2, self:GetHeight() / 128 * 0.25)
+                        self:texcoordvelocity( pnSide(pn) * 0.5, 0)
+                        self:diffuse( BoostColor( PlayerColor(pn), 0.75 ))
+                    end
+                    self:visible( List.middle == i )
+                    self:diffusealpha(0.15)
+                end,
+            },
 
-            LoseFocusCommand=function(self)
-                self:diffuse( Color.Black )
-                self:diffusealpha(1)
-            end,
+            -- border
+            Def.Sprite{
+                Texture = "../graphics/options_slot",
+                InitCommand=function(self)
+                    self:zoomto( List.width + 20, List.spacing + 8)
+                    self:animate(0)
+                    self:setstate(0)
+                    self:diffuse( List.middle == i and BoostColor( PlayerColor(pn), 1 ) or BoostColor( Color.White, 0.2 ))
+                end,
+            },
+
+            -- selection
+            Def.Sprite{
+                Texture = "../graphics/options_slot",
+                InitCommand=function(self)
+                    self:zoomto( List.width + 20, List.spacing + 8)
+                    self:animate(0)
+                    self:setstate(1)
+                    self:visible(List.middle == i)
+                    self:diffuse( BoostColor( PlayerColor(pn), 0.5 ))
+                    self:blend("BlendMode_Add")
+                end,
+            }
         }
+
 
         -- icon
         -- r[#r+1] = Def.Sprite{
@@ -401,11 +449,11 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         r[#r+1] = Def.BitmapText{
             Font = Font.UINormal,
             InitCommand=function(self)
-                self:zoom(0.45)
+                self:zoom(0.425)
                 self:halign(0)
                 self:xy( (List.width - 20) * -0.5, -3)
                 self:shadowlength(0.75)
-                self:shadowcolor(0,0,0,0.333333)
+                self:shadowcolor(0,0,0,0.2)
             end,
             
             OptionsListMessageCommand=function(self, context)
@@ -451,11 +499,11 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                 self:diffuseshift()
                 self:effectperiod(0.15)
                 self:effectcolor1( Color.White )
-                self:effectcolor2( BoostColor( PlayerColor(pn), 3 ))
+                self:effectcolor2( BoostColor( PlayerColor(pn), 3.5 ))
             end,
 
             LoseFocusCommand=function(self)
-                self:diffuse( PlayerColor(pn) )
+                self:diffuse( BoostColor( PlayerColor(pn), 1 ))
                 self:stopeffect()
             end,
 
@@ -481,7 +529,7 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             InitCommand=function(self)
                 self:zoom(0.45)
                 self:halign(1)
-                self:xy( (List.width - 16) * 0.5, -1)
+                self:xy( (List.width - 16) * 0.5, -2)
                 self:shadowlength(0.75)
                 self:settext( "..." )
             end,
@@ -532,9 +580,9 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         s[#s+1] = r
     end
 
-
     t[#t+1] = s
 
+    
 end
 
 return t

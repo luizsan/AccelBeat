@@ -1,6 +1,6 @@
 local pn_color = {
-    [PLAYER_1] = {0.20,0.75,1, alpha or 1},
-    [PLAYER_2] = {0.2,1,0.8, alpha or 1}, 
+    [PLAYER_1] = {0.20,0.75,1,1},
+    [PLAYER_2] = {0.2,1,0.8,1}, 
 }
 
 local st_color = {
@@ -32,7 +32,7 @@ local accent_color = {
     },
 }
 
-function PlayerColor(pn, alpha)
+function PlayerColor(pn)
     return pn_color[pn] or {1,1,1,1}
 end
 
