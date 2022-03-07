@@ -5,6 +5,7 @@ local slot = {
 
 ThemeConfigDir = "AccelBeat/ThemeConfig.ini"
 PlayerConfigDir = "AccelBeat/PlayerConfig.ini"
+EditorConfigDir = "AccelBeat/EditorConfig.ini"
 
 function GetPlayerOrMachineProfileDir(pn)
     if slot[pn] then 

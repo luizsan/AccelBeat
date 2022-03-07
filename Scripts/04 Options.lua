@@ -3,21 +3,13 @@ function ReadOptionsTable(pn)
     local t = {}
 
     -- speedmod
-    if options:AMod() then
-        t.SpeedMod = options:AMod()
-        t.SpeedType = "average"
-    elseif options:MMod() then
-        t.SpeedMod = options:MMod()
-        t.SpeedType = "maximum"
-    elseif options:XMod() then
-        t.SpeedMod = options:XMod() * 100
-        t.SpeedType = "multiple"
-    elseif options:CMod() then
-        t.SpeedMod = options:CMod()
-        t.SpeedType = "constant"
+    local speed = GetSpeed(pn)
+    if speed then
+        t.SpeedMod = speed[1]
+        t.SpeedType = speed[2]
     else
-        t.SpeedMod = 250
-        t.SpeedType = "automatic"
+        t.SpeedMod = DEFAULT_SPEED_VALUE
+        t.SpeedType = DEFAULT_SPEED_TYPE
     end
 
     if PROFILEMAN:IsPersistentProfile(pn) then
@@ -53,19 +45,7 @@ function WriteOptionsTable(pn, t)
     local state = GAMESTATE:GetPlayerState(pn)
     local options = state:GetPlayerOptions("ModsLevel_Preferred")
     
-    if t.SpeedMod and t.SpeedType then
-        if t.SpeedType == "average" then
-            options:AMod(t.SpeedMod)
-        elseif t.SpeedType == "maximum" then
-            options:MMod(t.SpeedMod)
-        elseif t.SpeedType == "multiple" then
-            options:XMod(t.SpeedMod * 0.01)
-        elseif t.SpeedType == "constant" then
-            options:CMod(t.SpeedMod)
-        end
-    else
-        options:AMod(250)
-    end
+    SetSpeed(pn, t.SpeedMod, t.SpeedType)
 
     if PROFILEMAN:IsPersistentProfile(pn) then
         local profile_dir = GetPlayerOrMachineProfileDir(pn)
