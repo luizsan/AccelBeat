@@ -30,6 +30,7 @@ function ToggleMusicRate(event)
 end
 
 function ChangeSpeed(event)
+    if SCREENMAN:GetTopScreen():GetEditState() ~= "EditState_Edit" then return end
     if event.type == "InputEventType_FirstPress" then
         if event.DeviceInput.button == "DeviceButton_u" then
             local index = table.index( SpeedType, speed_type ) or 1
