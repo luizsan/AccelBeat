@@ -70,6 +70,9 @@ function MenuInputMaster(event)
     SpecialKeys(event)
     Search(event)
     Menu(event)
+
+    -- prevent keys from locking the other inputs after alt+tabbing
+    ReleaseSpecialKeys()
 end
 
 function Menu(event)
