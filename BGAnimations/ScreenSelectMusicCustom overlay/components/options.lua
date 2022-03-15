@@ -4,6 +4,12 @@ local List = {
     maxItems = 9,
 }
 
+local MenuAction = {
+    Menu = "menu",
+    Property = "property",
+    Exit = "exit"
+}
+
 List.middle = math.ceil( List.maxItems * 0.5 )
 
 local playerData = {}
@@ -141,7 +147,7 @@ function BackOptionsList(context)
         playerData[context.Player].field = nil
         
     elseif #playerData[context.Player].stack > 0 then
-        context.menu = true
+        context.menu = MenuAction.Menu
         PathBackward(context.Player)
         table.remove( playerData[context.Player].stack )
     else
@@ -217,7 +223,7 @@ function ChooseOption(context)
 
 
     if current_option.Type == OptionsType.Menu then
-        context.menu = true
+        context.menu = MenuAction.Menu
         
         PathForward(context.Player)
         table.insert( playerData[context.Player].stack, current_option.Choices )
@@ -225,20 +231,26 @@ function ChooseOption(context)
         MESSAGEMAN:Broadcast("OptionsList", context)
         
     elseif current_option.Type == OptionsType.Value then
+        context.menu = MenuAction.Property
+
         PathForward(context.Player)
         table.insert( playerData[context.Player].stack, {} )
         playerData[context.Player].field = current_option
         RefreshElements(context)
         MESSAGEMAN:Broadcast("OptionsList", context)
-
+        
     elseif current_option.Type == OptionsType.Toggle then
+        context.property = MenuAction.Property
+
         playerData[context.Player].field = current_option
         ChangeProperty(context)
         playerData[context.Player].field = nil
         RefreshElements(context)
         MESSAGEMAN:Broadcast("OptionsList", context)
-
+        
     elseif current_option.Type == OptionsType.Action then
+        context.property = MenuAction.Property
+
         current_option.Action(context)
         RefreshElements(context)
         MESSAGEMAN:Broadcast("OptionsList", context)
@@ -324,41 +336,54 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                 local pos_y = SCREEN_CENTER_Y + (List.maxItems * 0.5 - i) * -List.spacing + 10
                 
                 local target_alpha = 1
+                local offset = 12 * -pnSide(pn)
+
+                local transition = context and context.menu and context.menu == MenuAction.Menu or false
+                local property = context and context.menu and context.menu == MenuAction.Property or false
+                local exit = context and context.Player and #playerData[context.Player].stack < 1
+                local direction = context and context.direction or nil
+
+                if i == List.middle then pos_x = pos_x + offset end
                 
-                --if OptionsListOpened(pn) then
-                    self:stoptweening()
-                --end
+                if not exit and not property then
+                    self:finishtweening()
+                end
+           
 
                 if not playerData[pn].stack or #playerData[pn].stack < 1 then
                     target_alpha = 0
                     pos_x = pos_x + (20 * pnSide(pn))
                 else
-                    if context then
-                        if context.direction then
-                            self:addy( List.spacing * context.direction )
 
-                            if i == 1 and context.direction < 0 then 
-                                self:diffusealpha(0) 
-                                self:zoomy(0) 
-                            end
+                    if direction then
+                        self:addy( List.spacing * direction )
 
-                            if i == List.maxItems and context.direction > 0 then 
-                                self:diffusealpha(0) 
-                                self:zoomy(0) 
-                            end
+                        if math.abs(context.direction) == 1 then
+                            if i == List.middle - direction then self:x(pos_x + offset) end
+                            if i == List.middle then self:x(pos_x - offset) end
                         end
 
-                        if context.menu then
-                            self:addx( 20 * pnSide(pn))
-                            self:diffusealpha(0)
+                        if i == 1 and context.direction < 0 then 
+                            self:diffusealpha(1) 
+                            self:zoomy(0) 
                         end
+
+                        if i == List.maxItems and direction > 0 then 
+                            self:diffusealpha(0) 
+                            self:zoomy(0) 
+                        end
+                    end
+
+                    if transition then
+                        self:addx( 20 * pnSide(pn))
+                        self:diffuse(0,0,0,1)
                     end
                 end
                 
-                self:decelerate(0.125)
-                self:diffusealpha(target_alpha)
+                self:decelerate(0.175)
+                self:diffuse(1,1,1,target_alpha)
                 self:zoomy(1)
-                self:xy(pos_x, pos_y)
+                self:xy( pos_x, pos_y )
             end,
         }
 
@@ -559,7 +584,11 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                     self:diffusealpha(1)
                     self:visible(true)
                     if option.Type == OptionsType.Value and option.Default then
-                        self:settext( SelectMusic.playerOptions[pn][option.Name] or option.Default )
+                        if option.Name == "SpeedMod" then
+                            self:settext( SpeedFormat( SelectMusic.playerOptions[pn][option.Name], SelectMusic.playerOptions[pn].SpeedType ))
+                        else
+                            self:settext( SelectMusic.playerOptions[pn][option.Name] or option.Default )
+                        end
 
                     elseif option.Type == OptionsType.Toggle and option.Default then
                         self:settext( (SelectMusic.playerOptions[pn][option.Name] or option.Default or 0) == 0 and "Off" or "On" )
