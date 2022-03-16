@@ -131,19 +131,20 @@ local t = Def.ActorFrame{
             local color = Color.White
 
 			if context.Player or player then
-				if context.FullComboW1 then
+				stats = STATSMAN:GetCurStageStats():GetPlayerStageStats(player)
+				if stats:FullComboOfScore("TapNoteScore_W1") then
 					text = "Flawless\nCombo"
                     color = {1,0.95,0.5,1}
                     
-				elseif context.FullComboW2 then
+				elseif stats:FullComboOfScore("TapNoteScore_W2") then
 					text = "Perfect\nCombo"
                     color = {0.666666,0.9,1,1}
                     
-				elseif context.FullComboW3 then
+				elseif stats:FullComboOfScore("TapNoteScore_W3") then
 					text = "Full\nCombo"
                     color = {0.5,1,0.75,1}
                     
-				elseif context.FullComboW4 then
+				elseif stats:FullComboOfScore("TapNoteScore_W5") then
 					text = "No Miss\nCombo"
                     
 				elseif context.Combo then
