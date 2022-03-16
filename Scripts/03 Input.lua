@@ -57,10 +57,10 @@ end
 function SpecialKeys(event)
     for key, value in pairs(_specialKeys) do
         if event.DeviceInput.button:find(key:lower()) then
-            if event.type == "InputEventType_FirstPress" then
-                _specialKeys[key] = true
-            elseif event.type == "InputEventType_Release" then
+            if event.type == "InputEventType_Release" then
                 _specialKeys[key] = false
+            else
+                _specialKeys[key] = true
             end
         end
     end
@@ -70,14 +70,11 @@ function MenuInputMaster(event)
     SpecialKeys(event)
     Search(event)
     Menu(event)
-
-    -- prevent keys from locking the other inputs after alt+tabbing
-    ReleaseSpecialKeys()
 end
 
 function Menu(event)
-    if _specialKeys.ALT then return end
-    if _specialKeys.CTRL then return end
+    -- if _specialKeys.ALT then return end
+    -- if _specialKeys.CTRL then return end
     if event.type ~= "InputEventType_Release" then
         local context = {
             Menu = _menu[event.button] or event.button,
