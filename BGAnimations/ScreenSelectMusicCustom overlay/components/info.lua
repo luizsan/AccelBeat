@@ -74,7 +74,11 @@ t[#t+1] = Def.BitmapText{
     RefreshCommand=function(self,context)
         if not context or not context.item or not context.item.type then return end
         if context.item.type == ItemType.Song then
-            self:settext( context.item.content:GetMainTitle(), context.item.content:GetTranslitMainTitle() )
+            if context.item.content then
+                self:settext( context.item.content:GetMainTitle(), context.item.content:GetTranslitMainTitle() )
+            else 
+                self:settext("Random")
+            end
         elseif context.item.type == ItemType.Folder then
             if SelectMusic.currentSort == SortMode.Level then
                 self:settext( "Level "..context.item.content )
@@ -104,7 +108,11 @@ t[#t+1] = Def.BitmapText{
     GridSelectedMessageCommand=function(self,context)
         if not context or not context.item or not context.item.type then return end
         if context.item.type == ItemType.Song then
-            self:settext( context.item.content:GetDisplayArtist(), context.item.content:GetTranslitArtist() )
+            if context.item.content then
+                self:settext( context.item.content:GetDisplayArtist(), context.item.content:GetTranslitArtist() )
+            else
+                self:settext( "Pick a random song" )
+            end
         elseif context.item.type == ItemType.Folder then
             self:settext( context.item.num_songs.." songs" )
         elseif context.item.type == ItemType.Sort then
@@ -135,11 +143,15 @@ t[#t+1] = Def.BitmapText{
         if not context or not context.item or not context.item.type then return end
         if context.item.type == ItemType.Song then
             self:visible(true)
-            local sec = context.item.content:MusicLengthSeconds()
-            if sec >= 3600 then
-                self:settext( SecondsToHHMMSS(sec) )
+            if context.item.content then
+                local sec = context.item.content:MusicLengthSeconds()
+                if sec >= 3600 then
+                    self:settext( SecondsToHHMMSS(sec) )
+                else
+                    self:settext( SecondsToMMSS(sec) )
+                end
             else
-                self:settext( SecondsToMMSS(sec) )
+                self:settext( "??:??" )
             end
         else
             self:visible(false)
@@ -171,7 +183,11 @@ t[#t+1] = Def.BPMDisplay{
     GridSelectedMessageCommand=function(self,context)
         if not context or not context.item or not context.item.type then return end
         if context.item.type == ItemType.Song then
-            self:SetFromSong( context.item.content )
+            if context.item.content then
+                self:SetFromSong( context.item.content )
+            else
+                self:SetFromSong( nil )
+            end
             self:visible(true)
             self:settext( self:GetText().." BPM" )
         else

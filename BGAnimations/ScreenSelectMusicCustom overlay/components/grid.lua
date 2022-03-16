@@ -57,6 +57,7 @@ local song_levels = {}
 
 local current_rows = {}
 local current_songs = {}
+local current_items = {}
 local current_index = { x = 1, y = 1 }
 
 local prev_row = nil
@@ -170,6 +171,7 @@ function LoadData()
     song_data.level = {}
 
     song_folders = SONGMAN:GetSongGroupNames()
+    table.sort(song_folders)
 
     found_song = false
     if preferred_song and table.contains(song_data.all, preferred_song) then
@@ -270,28 +272,34 @@ function SortDataCollections()
 end
 
 
-function AddSongsToGrid(list)
+function AddSongsToGrid(list, random)
+    if random then table.insert( current_items, { type = ItemType.Song, content = nil }) end
+
+    current_songs = list and list or {}
     for i, song in ipairs( list ) do 
-        table.insert( SelectMusic.currentItems, { type = ItemType.Song, content = song })
+        table.insert( current_items, { type = ItemType.Song, content = song })
     end
 end
 
 
 
 function BuildItems()
-    SelectMusic.currentItems = nil
-    SelectMusic.currentItems = {}
+    current_items = nil
+    current_items = {}
+    
+    current_songs = nil
+    current_songs = {}
 
     -- sort modes
-    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.All })
-    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Title })
-    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Artist })
-    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Group })
-    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Level })
+    table.insert( current_items, { type = ItemType.Sort, content = SortMode.All })
+    table.insert( current_items, { type = ItemType.Sort, content = SortMode.Title })
+    table.insert( current_items, { type = ItemType.Sort, content = SortMode.Artist })
+    table.insert( current_items, { type = ItemType.Sort, content = SortMode.Group })
+    table.insert( current_items, { type = ItemType.Sort, content = SortMode.Level })
 
     -- filter
     if GAMESTATE:GetNumSidesJoined() < 2 then
-        table.insert( SelectMusic.currentItems, { type = ItemType.Filter, content = SelectMusic.currentFilter })
+        table.insert( current_items, { type = ItemType.Filter, content = SelectMusic.currentFilter })
     else
         SelectMusic.currentFilter = FilterMode.All
     end
@@ -299,13 +307,13 @@ function BuildItems()
     -- all songs
     if SelectMusic.currentSort == SortMode.All then
         local filtered_songs = FilterSongs( song_data.all, SelectMusic.currentFilter )
-        AddSongsToGrid( filtered_songs )
+        AddSongsToGrid( filtered_songs, true )
 
     -- all songs
     elseif SelectMusic.currentSort == SortMode.Search then
         local filtered_songs = FilterSongs( SelectMusic.searchResults, SelectMusic.currentFilter )
-        table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = "Search Results", num_songs = #filtered_songs, blocked = true })
-        AddSongsToGrid( filtered_songs )
+        table.insert( current_items, { type = ItemType.Folder, content = "Search Results", num_songs = #filtered_songs, blocked = true })
+        AddSongsToGrid( filtered_songs, false )
 
     -- folders
     elseif SelectMusic.currentSort == SortMode.Group then
@@ -313,9 +321,9 @@ function BuildItems()
 
             local filtered_songs = FilterSongs( song_data.group[folder], SelectMusic.currentFilter )
             if #filtered_songs > 0 then
-                table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = folder, num_songs = #filtered_songs })
+                table.insert( current_items, { type = ItemType.Folder, content = folder, num_songs = #filtered_songs })
                 if SelectMusic.currentFolder and SelectMusic.currentFolder == folder then
-                    AddSongsToGrid( filtered_songs )
+                    AddSongsToGrid( filtered_songs, true )
                 end
             end
         end
@@ -326,9 +334,9 @@ function BuildItems()
 
             local filtered_songs = FilterSongs( song_data.title[keys], SelectMusic.currentFilter )
             if #filtered_songs > 0 then
-                table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = keys, num_songs = #filtered_songs })
+                table.insert( current_items, { type = ItemType.Folder, content = keys, num_songs = #filtered_songs })
                 if SelectMusic.currentFolder and SelectMusic.currentFolder == keys then
-                    AddSongsToGrid( filtered_songs )
+                    AddSongsToGrid( filtered_songs, true )
                 end
             end
         end
@@ -338,9 +346,9 @@ function BuildItems()
 
             local filtered_songs = FilterSongs( song_data.artist[keys], SelectMusic.currentFilter )
             if #filtered_songs > 0 then
-                table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = keys, num_songs = #filtered_songs })
+                table.insert( current_items, { type = ItemType.Folder, content = keys, num_songs = #filtered_songs })
                 if SelectMusic.currentFolder and SelectMusic.currentFolder == keys then
-                    AddSongsToGrid( filtered_songs )
+                    AddSongsToGrid( filtered_songs, true )
                 end
             end
         end
@@ -350,9 +358,9 @@ function BuildItems()
 
             local filtered_songs = FilterSongs( song_data.level[v], SelectMusic.currentFilter )
             if #filtered_songs > 0 then
-                table.insert( SelectMusic.currentItems, { type = ItemType.Folder, content = v, num_songs = #filtered_songs })
+                table.insert( current_items, { type = ItemType.Folder, content = v, num_songs = #filtered_songs })
                 if SelectMusic.currentFolder and SelectMusic.currentFolder == v then
-                    AddSongsToGrid( filtered_songs )
+                    AddSongsToGrid( filtered_songs, true )
                 end
             end
         end
@@ -372,8 +380,8 @@ function BuildRows()
     local prev_data = nil
     local cur_data = nil
 
-    for i = 1, #SelectMusic.currentItems do
-        cur_data = SelectMusic.currentItems[i]
+    for i = 1, #current_items do
+        cur_data = current_items[i]
         col_target = MaximumPerRow[cur_data.type]
 
         if i > 1 then
@@ -438,23 +446,23 @@ end
 function SearchGrid(query)
     if not query or query == "" then return end
 
-    SelectMusic.currentItems = nil
-    SelectMusic.currentItems = {}
+    current_items = nil
+    current_items = {}
     SelectMusic.currentFilter = FilterMode.All
     SelectMusic.currentSort = SortMode.Search
 
     -- sort modes
-    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.All })
-    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Title })
-    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Artist })
-    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Group })
-    table.insert( SelectMusic.currentItems, { type = ItemType.Sort, content = SortMode.Level })
+    table.insert( current_items, { type = ItemType.Sort, content = SortMode.All })
+    table.insert( current_items, { type = ItemType.Sort, content = SortMode.Title })
+    table.insert( current_items, { type = ItemType.Sort, content = SortMode.Artist })
+    table.insert( current_items, { type = ItemType.Sort, content = SortMode.Group })
+    table.insert( current_items, { type = ItemType.Sort, content = SortMode.Level })
     
     local index_offset = 4
     
     -- filter
     if GAMESTATE:GetNumSidesJoined() < 2 then
-        table.insert( SelectMusic.currentItems, { type = ItemType.Filter, content = SelectMusic.currentFilter })
+        table.insert( current_items, { type = ItemType.Filter, content = SelectMusic.currentFilter })
         index_offset = 5
     end
     
@@ -479,7 +487,7 @@ function SearchGrid(query)
     end
     
     -- blocked folder
-    table.insert( SelectMusic.currentItems, { 
+    table.insert( current_items, { 
         type = ItemType.Folder, 
         content = "Search Results", 
         num_songs = #SelectMusic.searchResults, 
@@ -497,9 +505,9 @@ function GoToItem(row, column)
     current_index.y = row
     current_index.x = column
 
-    SelectMusic.currentRow = GetCurrentRow(current_index.y)
-    current_column = clamp(current_index.x, 1, #SelectMusic.currentRow)
-    current_item = GetCurrentItem(SelectMusic.currentRow)
+    current_row = GetCurrentRow(current_index.y)
+    current_column = clamp(current_index.x, 1, #current_row)
+    current_item = GetCurrentItem(current_row)
 
     SelectMusic.song = current_item and current_item.type == ItemType.Song and current_item.content or nil
     GAMESTATE:SetCurrentSong(SelectMusic.song)
@@ -573,11 +581,11 @@ function GridInputController(context)
 
     -- // ========================================
     
-    SelectMusic.currentRow = GetCurrentRow(current_index.y)
-    current_item = GetCurrentItem(SelectMusic.currentRow)
+    current_row = GetCurrentRow(current_index.y)
+    current_item = GetCurrentItem(current_row)
 
     -- now redundant with AdjustCursorPosition() but might be useful in the future
-    current_column = clamp(current_index.x, 1, #SelectMusic.currentRow)
+    current_column = clamp(current_index.x, 1, #current_row)
     SelectMusic.song = current_item and current_item.type == ItemType.Song and current_item.content or nil
 
     if context.Menu == "Start" then
@@ -596,7 +604,11 @@ function GridInputController(context)
                     sort_changed = true
                 end
             elseif current_item.type == ItemType.Song then
-                SetSong( current_item.content )
+                if current_item.content then 
+                    SetSong( current_item.content )
+                else
+                    SetRandomSong( true )
+                end
 
             elseif current_item.type == ItemType.Filter then
 
@@ -656,14 +668,38 @@ end
 
 -- prevents visual oddities from happening due to different grid indices being aligned
 function AdjustCursorPosition()
-    SelectMusic.currentRow = GetCurrentRow(current_index.y)
-    if #SelectMusic.currentRow < #prev_row then
-        current_index.x = current_index.x - math.floor((#prev_row - #SelectMusic.currentRow) * 0.5)
+    current_row = GetCurrentRow(current_index.y)
+    if #current_row < #prev_row then
+        current_index.x = current_index.x - math.floor((#prev_row - #current_row) * 0.5)
     end
-    if #SelectMusic.currentRow > #prev_row then
-        current_index.x = current_index.x + math.floor((#SelectMusic.currentRow - #prev_row) * 0.5)
+    if #current_row > #prev_row then
+        current_index.x = current_index.x + math.floor((#current_row - #prev_row) * 0.5)
     end
-    current_index.x = clamp(current_index.x, 1, #SelectMusic.currentRow)
+    current_index.x = clamp(current_index.x, 1, #current_row)
+end
+
+
+function SetRandomSong(jump)
+    local num_songs = current_songs and #current_songs or 0
+    if num_songs > 0 then
+        
+        local random_song = current_songs[math.random(num_songs)]
+
+        if jump then
+            current_index.y, current_index.x = GetRowIndex( ItemType.Song, random_song )
+            GoToItem( current_index.y, current_index.x )
+        end
+        
+
+        local params = { 
+            item = { type = ItemType.Song, content = random_song }, 
+            sort = SelectMusic.currentSort, 
+            filter = SelectMusic.currentFilter 
+        }
+
+        SetSong( random_song )
+        MESSAGEMAN:Broadcast("GridSelected", params)
+    end
 end
 
 
@@ -833,7 +869,7 @@ for y = 1, Grid.slots.y do
         
                     if item then
                         if item.type == ItemType.Song then 
-                            local path = item.content:GetBannerPath()
+                            -- local path = item.content and item.content:GetBannerPath() or THEME:GetPathG("", "_missing")
                             -- if path then
                             --     if not BANNER_CACHE[path] then
                             --         self:LoadFromCachedBanner(path)
@@ -843,13 +879,13 @@ for y = 1, Grid.slots.y do
                             --     end
                             -- else
                                 self:Load(THEME:GetPathG("", "patterns/noise"))
-
                             -- end
+
                             self:scaletoclipped(Grid.size.Song.x, Grid.size.Song.y)
                             self:customtexturerect(0,0, 80 / self:GetWidth(), 40 / self:GetHeight())
                             self:texcoordvelocity(80,120)
-        
-                            self:diffuse( selected and Color.White or Grid.colors.Song )
+
+                            self:diffuse( selected and Color.White or (item.content and Grid.colors.Song or Color.Red) )
                             self:glow( selected and {1,1,1,1} or {0,0,0,0} )
 
                         elseif item.type == ItemType.Folder then
@@ -914,7 +950,7 @@ for y = 1, Grid.slots.y do
                             self:zoom(0.5)
                             self:maxwidth( Grid.size.Song.x * 2 - 32)
                             self:wrapwidthpixels( Grid.size.Song.x * 2 - 32)
-                            self:settext( item.content:GetDisplayMainTitle())
+                            self:settext( item.content and item.content:GetDisplayMainTitle() or "Random")
                         else
                             -- self:visible(true)
                             self:zoom(0.6)
@@ -930,7 +966,7 @@ for y = 1, Grid.slots.y do
                         end
                     end
 
-                    self:diffuse( selected and Color.Blue or Color.White )
+                    self:diffuse( selected and (item.content and Color.Blue or Color.Red) or Color.White )
                     self:shadowcolor( selected and {0,0,0,0} or BoostColor( Color.Black, 0.25 ))
                 end
             }
