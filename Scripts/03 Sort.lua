@@ -107,3 +107,15 @@ function EligibleSteps(step, sides)
 
     return true
 end
+
+function SortScoresByPercent(a,b)
+    if a:GetPercentDP() == b:GetPercentDP() then
+        return a:GetDate() > b:GetDate()
+    else
+        return a:GetPercentDP() > b:GetPercentDP()
+    end
+end
+
+function SortScoresByDate(a,b)
+    return DateToNumber(a:GetDate()) > DateToNumber(b:GetDate())
+end

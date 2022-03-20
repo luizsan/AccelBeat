@@ -28,3 +28,23 @@ function ValidMetadata(s)
     if s:lower() == "blank" then return false end
     return true
 end
+
+function FormatAward(award)
+    if award == "StageAward_FullComboW3" then return "Full Combo!"
+    elseif award == "StageAward_SingleDigitW3" then return "Single Digit Greats!"
+    elseif award == "StageAward_OneW3" then return "One Great!"
+    elseif award == "StageAward_FullComboW2" then return "Full Perfect!"
+    elseif award == "StageAward_SingleDigitW2" then return "Single Digit Perfects!"
+    elseif award == "StageAward_OneW2" then return "One Perfect!"
+    elseif award == "StageAward_FullComboW1" then return "Absolutely Flawless!"
+    else return nil
+    end
+end
+
+function DateToNumber(datetime)
+    local str = datetime
+    str = string.gsub(str, "-", "")
+    str = string.gsub(str, ":", "")
+    str = string.gsub(str, " ", "")
+    return tonumber(str)
+end

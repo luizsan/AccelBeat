@@ -37,7 +37,7 @@ function SetDefaultSteps(context)
         end
     end
 
-    for i, pn in ipairs(GAMESTATE:GetEnabledPlayers()) do
+    for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         local index = starting_index > -1 and starting_index or clamp( SelectMusic.stepsIndex[pn], 1, #SelectMusic.steps)
         SelectMusic.stepsIndex[pn] = index
         SelectMusic.playerSteps[pn] = SelectMusic.steps[index]
@@ -356,6 +356,17 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                     end
                 end,
             }
+        }
+
+        side[#side+1] = LoadActor("highscores")..{
+            InitCommand=function(self)
+                self:xy(12 * pnSide(pn), 140)
+            end,
+            StepsChangedMessageCommand=function(self, context)
+                if context and context.Player == pn then
+                    self:playcommand("RefreshScore", context)
+                end
+            end
         }
     end
 
