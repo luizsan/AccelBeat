@@ -1,7 +1,6 @@
 local Header = {
     width = 1082,
     height = 86,
-    y = 32
 }
 
 local Glow = {
@@ -19,7 +18,7 @@ t[#t+1] = Def.Quad{
         self:zoomto(Header.width + 32, Header.height - 20)
         self:diffuse( Color.White )
         self:diffusetopedge( BoostColor( Color.White, 0.9 ))
-        self:xy(SCREEN_CENTER_X, Header.y + 6)
+        self:y(6)
     end
 }
 
@@ -34,7 +33,7 @@ t[#t+1] = Def.Sprite{
         self:customtexturerect(0,0,w,h)
         self:diffuse( BoostColor( Color.White, 0.1 )):diffusealpha(0.075)
         self:fadebottom(1)
-        self:xy(SCREEN_CENTER_X, Header.y + 8)
+        self:y(8)
     end
 }
 
@@ -48,7 +47,7 @@ for i = 1,3 do
             self:setstate(i-1)
             self:align( align[i], 0 )
             self:zoomto(i == 2 and Header.width or (self:GetWidth() * (2/3) * -1), Header.height)
-            self:xy(SCREEN_CENTER_X - ((Header.width * 0.5 * offset[i])), Header.y)
+            self:x(-Header.width * 0.5 * offset[i])
         end
     }
 
@@ -64,7 +63,7 @@ for y = 3, 1, -1 do
                 self:setstate( (x-1) + ((y-1)*3) )
                 self:align( align[x], 0.5 )
                 self:zoomto(x == 2 and Glow.width or (self:GetWidth() * 0.75), self:GetHeight() * 0.75)
-                self:xy( SCREEN_CENTER_X + (Glow.width * 0.5 * offset[x]) , Header.y + 70)
+                self:xy( Glow.width * 0.5 * offset[x], 70)
                 self:blend( y > 1 and "BlendMode_Add" or "BlendMode_Normal" )
                 self:diffuse( AccentColor("Blue", y + 1) )
 

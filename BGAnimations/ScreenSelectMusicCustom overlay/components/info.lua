@@ -1,14 +1,21 @@
 
 local h = 72
 
+local t = Def.ActorFrame{
+    InitCommand=function(self)
+        self:xy(SCREEN_CENTER_X, SCREEN_TOP + h)
+    end,
+}
 
-local t = Def.ActorFrame{}
+t[#t+1] = LoadActor("header")..{
+    InitCommand=function(self) self:y(-40) end
+}
 
 t[#t+1] = Def.Sprite{
     Texture = "../graphics/header_category",
     InitCommand=function(self)
         self:animate(0)
-        self:xy(SCREEN_CENTER_X - 520, h)
+        self:xy(-520, 0)
         self:zoom(0.8)
         self:diffuse( BoostColor( Color.White, 0.333333 ))
     end,
@@ -38,7 +45,7 @@ t[#t+1] = Def.Sprite{
     InitCommand=function(self)
         self:animate(0)
         self:setstate(3)
-        self:xy(SCREEN_CENTER_X - 520, h)
+        self:xy(-520, 0)
         self:zoom(0.8)
         self:diffuse( AccentColor( "Blue", 1 ))
     end,
@@ -62,7 +69,7 @@ t[#t+1] = Def.BitmapText{
     InitCommand=function(self)
         self:diffuse(BoostColor(Color.White, 0.1))
         self:align(0, 0)
-        self:xy(SCREEN_CENTER_X - 485, h - 22)
+        self:xy(-485, -22)
         self:zoom(0.675)
         self:strokecolor(0,0,0,0.2)
         self:shadowcolor( Color.White )
@@ -100,7 +107,7 @@ t[#t+1] = Def.BitmapText{
     InitCommand=function(self)
         self:diffuse(0,0.625,1,1)
         self:halign(0,0)
-        self:xy(SCREEN_CENTER_X - 485, h + 6)
+        self:xy(-485, 6)
         self:zoom(0.55)
         self:shadowcolor( Color.White )
         self:shadowlengthy(-2)
@@ -133,7 +140,7 @@ t[#t+1] = Def.BitmapText{
     InitCommand=function(self)
         self:diffuse( BoostColor( Color.White, 0.333333 ))
         self:align(1,1)
-        self:xy(SCREEN_CENTER_X + 520, h - 2)
+        self:xy(520,-2)
         self:shadowcolor( Color.White )
         self:shadowlengthy(-1)
         self:zoom(0.475)
@@ -168,7 +175,7 @@ t[#t+1] = Def.BPMDisplay{
     InitCommand=function(self)
         self:diffuse(0,0.625,1,1)
         self:align(1,1)
-        self:xy(SCREEN_CENTER_X + 520, h + 16)
+        self:xy(520,16)
         self:shadowcolor( Color.White )
         self:shadowlengthy(-2)
         self:zoom(0.7)
