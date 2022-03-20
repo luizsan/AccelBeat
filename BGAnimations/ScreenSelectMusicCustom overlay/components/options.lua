@@ -1,7 +1,8 @@
 local List = {
+    position = 420,
     width = 250,
     spacing = 30,
-    maxItems = 9,
+    maxItems = 11,
 }
 
 local MenuAction = {
@@ -261,12 +262,15 @@ function ChooseOption(context)
 end
 
 
+-- ## =================================================================================================
+
+
 local t = Def.ActorFrame{}
 
-for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
+for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
     -- side
-    local s = Def.ActorFrame{
+    local side = Def.ActorFrame{
         OnCommand=function(self) 
             self:diffusealpha(0)
             self:playcommand("OptionsList") 
@@ -281,58 +285,79 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     }
 
     -- background
-    s[#s+1] = Def.Quad{
+    side[#side+1] = Def.Quad{
         InitCommand=function(self)
-            self:diffuse( BoostColor( PlayerColor(pn), 0.1 ))
-            self:diffusealpha(0.9)
+            self:diffuse( BoostColor( PlayerColor(pn), 0.075 ))
+            self:diffusealpha(0.95)
+            
             self:xy( SCREEN_CENTER_X, SCREEN_CENTER_Y)
             self:halign(1)
-            self:zoomto( SCREEN_WIDTH * 0.5 * pnSide( OtherPlayer[pn]), SCREEN_HEIGHT )
-            self:cropright(0.2)
-            self:faderight(0.5)
+            self:zoomto( SCREEN_WIDTH * pnSide( OtherPlayer[pn]) * 0.5, SCREEN_HEIGHT )
+            
+            local pos_ratio = (List.position - List.width) / SCREEN_CENTER_X
+            local size_ratio = (List.width * 0.5) / SCREEN_CENTER_X
+            self:cropright(pos_ratio)
+            self:faderight(size_ratio)
         end
     }
 
-    -- s[#s+1] = Def.ActorFrame{
-    --     Def.Sprite{
-    --         Texture = THEME:GetPathG("", "selection_arrows"),
-    --         InitCommand=function(self)
-    --             self:zoom(0.5)
-    --             self:animate(0)
-    --             self:setstate(2)
-    --             self:halign(0.25)
+    side[#side+1] = Def.ActorFrame{
+        InitCommand=function(self)
+            self:zoom(0.333333)
+            local pos_x = SCREEN_CENTER_X + (List.position * pnSide(pn)) + ( (List.width * 0.5 + 20) * pnSide(pn)  )
+            local pos_y = SCREEN_CENTER_Y + List.spacing - 4
+            self:xy( pos_x, pos_y )
+        end,
 
-    --             local pos_x = SCREEN_CENTER_X + (430 * pnSide(pn)) + ( List.width * 0.5 + 8 )
-    --             local pos_y = SCREEN_CENTER_Y + List.spacing - 4
-    --             self:xy( pos_x, pos_y )
-    --         end,
-    --     },
+        OptionsListMessageCommand=function(self, context)
+            if context and context.direction and context.Player == pn then
+                self:finishtweening()
+                local pos_y = SCREEN_CENTER_Y + List.spacing - 4
+                self:y( pos_y + (List.spacing * context.direction))
+                self:decelerate(0.15)
+                self:y( pos_y )
+            end
+        end,
 
-    --     Def.Sprite{
-    --         Texture = THEME:GetPathG("", "selection_arrows"),
-    --         InitCommand=function(self)
-    --             self:zoom(0.5)
-    --             self:zoomx(-0.5)
-    --             self:animate(0)
-    --             self:setstate(2)
-    --             self:halign(0.25)
+        Def.Sprite{
+            Texture = THEME:GetPathG("", "selection_arrows"),
+            InitCommand=function(self)
+                self:halign(0.25)
+                self:animate(0)
+                self:setstate(2)
+                self:zoomx(-pnSide(pn))
+            end,
+        },
+    }
 
-    --             local pos_x = SCREEN_CENTER_X + (430 * pnSide(pn)) - ( List.width * 0.5 + 8 )
-    --             local pos_y = SCREEN_CENTER_Y + List.spacing - 4
-    --             self:xy( pos_x, pos_y )
-    --         end,
-    --     }
-    -- }
+    -- mask
+    -- I'M LITERALLY SWEATING, WHY IS THIS SO COMPLICATED
+    side[#side+1] = Def.ActorFrame{
+        InitCommand=function(self) 
+            local pos_x = SCREEN_CENTER_X + (List.position * pnSide(pn))
+            local pos_y = SCREEN_CENTER_Y
+            self:xy(pos_x, pos_y)
+        end,
+
+        Def.Quad{ InitCommand=function(self) self:zoomto(List.width * 1.2,100):diffuse(Color.Red):y(210):MaskSource() end },
+        Def.Quad{ InitCommand=function(self) self:zoomto(List.width * 1.2,100):diffuse(Color.Red):y(-160):MaskSource() end },
+    }
+
+    local list = Def.ActorFrame{
+        InitCommand=function(self)
+            self:MaskDest()
+        end,
+    }
 
     -- options
     for i = 1, List.maxItems do
 
         -- row
-        local r = Def.ActorFrame{
+        local row = Def.ActorFrame{
             OptionsListMessageCommand=function(self, context)
                 if context and context.Player ~= pn then return end
 
-                local pos_x = SCREEN_CENTER_X + (430 * pnSide(pn))
+                local pos_x = SCREEN_CENTER_X + (List.position * pnSide(pn))
                 local pos_y = SCREEN_CENTER_Y + (List.maxItems * 0.5 - i) * -List.spacing + 10
                 
                 local target_alpha = 1
@@ -388,7 +413,7 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         }
 
         -- background
-        r[#r+1] = Def.ActorFrame{
+        row[#row+1] = Def.ActorFrame{
 
             --flat
             Def.Quad{
@@ -405,11 +430,12 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                     self:zoomto( List.width + 3, List.spacing - 2)
                     if List.middle == i then
                         self:customtexturerect( 0, 0, self:GetWidth() / 128 * 2, self:GetHeight() / 128 * 0.25)
-                        self:texcoordvelocity( pnSide(pn) * 0.5, 0)
+                        self:texcoordvelocity( pnSide(pn) * 0.333333, 0)
                         self:diffuse( BoostColor( PlayerColor(pn), 0.75 ))
                     end
                     self:visible( List.middle == i )
                     self:diffusealpha(0.15)
+                    self:faderight(0.5)
                 end,
             },
 
@@ -471,7 +497,7 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         -- }
         
         -- label
-        r[#r+1] = Def.BitmapText{
+        row[#row+1] = Def.BitmapText{
             Font = Font.UINormal,
             InitCommand=function(self)
                 self:zoom(0.425)
@@ -549,7 +575,7 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         }
 
         -- value
-        r[#r+1] = Def.BitmapText{
+        row[#row+1] = Def.BitmapText{
             Font = Font.UINormal,
             InitCommand=function(self)
                 self:zoom(0.45)
@@ -594,7 +620,8 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                         self:settext( (SelectMusic.playerOptions[pn][option.Name] or option.Default or 0) == 0 and "Off" or "On" )
                         
                     elseif option.Type == OptionsType.Menu and option.Choices then
-                        self:settext( "▶")
+                        self:diffusealpha(0.5)
+                        self:settext( "+")
                     else
                         self:visible(false)
                     end
@@ -606,12 +633,12 @@ for index, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             end,
         }
 
-        s[#s+1] = r
+        list[#list+1] = row
     end
-
-    t[#t+1] = s
-
     
+    side[#side+1] = list
+
+    t[#t+1] = side
 end
 
 return t
