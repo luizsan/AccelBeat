@@ -37,6 +37,7 @@ end
 
 function MainController(self, context)
 	if SelectMusic.lockinput then return end
+	if context and context.Player and not GAMESTATE:IsSideJoined(context.Player) then return end
 
 	if not OptionsListOpened(context.Player) then
 			if SelectMusic.state == 0 then GridInputController(context) 
@@ -51,6 +52,7 @@ function MainController(self, context)
 end
 
 function Confirm()
+	GAMESTATE:SetCurrentPlayMode("PlayMode_Regular")
     if GAMESTATE:GetNumSidesJoined() > 1 then
         GAMESTATE:SetCurrentStyle("versus")
     else
@@ -63,7 +65,6 @@ function Confirm()
         GAMESTATE:SetCurrentStyle("single")
     end
     
-    GAMESTATE:SetCurrentPlayMode("PlayMode_Regular")
     GAMESTATE:SetCurrentSong( SelectMusic.song )
 
     for i,pn in ipairs(GAMESTATE:GetHumanPlayers()) do
@@ -97,7 +98,6 @@ t[#t+1] = LoadActor("components/gradient")
 t[#t+1] = LoadActor("components/steps")
 t[#t+1] = LoadActor("components/sub")
 t[#t+1] = LoadActor("components/options")
-t[#t+1] = LoadActor("components/header")
 t[#t+1] = LoadActor("components/info")
 t[#t+1] = LoadActor("components/audio")
 t[#t+1] = LoadActor("components/search")
