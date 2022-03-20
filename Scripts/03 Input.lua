@@ -76,15 +76,20 @@ function Menu(event)
     -- if _specialKeys.ALT then return end
     -- if _specialKeys.CTRL then return end
     if event.type ~= "InputEventType_Release" then
+
+        -- do not 
+        local dir = _direction[event.button] or nil
+        if (not dir or dir == "Center") and event.type == "InputEventType_Repeat" then return end
+
         local context = {
             Menu = _menu[event.button] or event.button,
-            Direction = _direction[event.button] or nil,
+            Direction = dir,
             Button = event.button,
             Player = event.PlayerNumber,
         }
 
+        MESSAGEMAN:Broadcast("MenuInput", context)
         if context.Player and GAMESTATE:IsSideJoined(context.Player) then
-            MESSAGEMAN:Broadcast("MenuInput", context)
             RunCodeQueue(context)
         end
     end
