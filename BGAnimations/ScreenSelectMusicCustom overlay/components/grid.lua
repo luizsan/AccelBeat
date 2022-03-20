@@ -22,9 +22,12 @@ local Grid = {
         Sort = { x = 192, y = 48 },
         Filter = { x = 256, y = 48 },
     },
-    spacing = { x = 24, y = 12 },
+    spacing = { x = 16, y = 10 },
     offset = { x = 0, y = 24 },
     middle = { x = 0, y = 0 },
+    padding = {
+        Song = 64,
+    },
     colors = {
         Song = BoostColor( Color.White, 0.4 ),
         Folder = { 0.090196, 0.0223529, 0.6, 1 },
@@ -273,14 +276,13 @@ end
 
 
 function AddSongsToGrid(list, random)
-    if random then table.insert( current_items, { type = ItemType.Song, content = nil }) end
+    if random and list and #list > 1 then table.insert( current_items, { type = ItemType.Song, content = nil }) end
 
     current_songs = list and list or {}
     for i, song in ipairs( list ) do 
-        table.insert( current_items, { type = ItemType.Song, content = song })
+        table.insert( current_items, { type = ItemType.Song, content = song, index = i })
     end
 end
-
 
 
 function BuildItems()
@@ -607,7 +609,7 @@ function GridInputController(context)
                 if current_item.content then 
                     SetSong( current_item.content )
                 else
-                    SetRandomSong( true )
+                    SetRandomSong( false )
                 end
 
             elseif current_item.type == ItemType.Filter then
@@ -705,6 +707,7 @@ end
 
 function SetSong(song)
     GAMESTATE:SetCurrentSong(song)
+    SelectMusic.song = song
     SelectMusic.state = 1
     SelectMusic.steps = FilterSteps(song, SelectMusic.currentFilter)
 
@@ -741,46 +744,75 @@ end
 
 
 function ItemDelay(x, y)
-    return (math.abs(y - Grid.middle.y) * 0.075) + (x * 0.075) * 0.75
+    -- return (math.abs(y - Grid.middle.y) * 0.075) + (x * 0.075) * 0.75
+    return math.random() * 0.333333
 end
 
+
+function ItemBanner(self, song, selected)
+    local path = song and song:GetBannerPath() or nil
+    
+    if path then
+        self:animate(0)
+
+        -- somehow, it will actually cache the banner if loaded twice
+        -- this massively improves performance when loading new banners
+        -- a certified stepmania™ moment
+        self:LoadFromCached("Banner", path) 
+        self:LoadFromCached("Banner", path) 
+    else 
+        self:animate(1)
+        self:Load(THEME:GetPathG("", "patterns/noise"))
+        self:texcoordvelocity(60 + (math.random() * 20), 100 + (math.random() * 20))
+    end
+
+    local target_w = Grid.size.Song.x - 8
+    local target_h = Grid.size.Song.y - 12
+    self:scaletoclipped(target_w, target_h)
+
+    local c = selected and Color.White or Grid.colors.Song
+    self:diffuse( BoostColor(c, 1 )) 
+    self:glow( selected and not path and {1,1,1,1} or {0,0,0,0} )
+    self:xy(0,8)
+end
+
+
+local g = Def.ActorFrame{}
 
 -- grid
 for y = 1, Grid.slots.y do
     for x = 1, Grid.slots.x do
-        t[#t+1] = Def.ActorFrame{
+        g[#g+1] = Def.ActorFrame{
             Name = "Item"..tostring(#t+1),
-            OnCommand=function(self)
-                self:playcommand("GridScroll") 
-            end,
+            OnCommand=function(self) self:playcommand("GridScroll") end,
 
             GridScrollMessageCommand=function(self)
+                if SelectMusic.state == 1 then return end
+
                 local _offset = coords_table[Grid.middle.y][1].height * coords_direction
                 local _coord = SCREEN_CENTER_Y + coords_table[y][x].y + Grid.offset.y - grid_center
-                
-                self:visible(coords_table[y][x].active)
 
-                if SelectMusic.state == 1 then
-                    self:stoptweening()
-                else
-                    self:finishtweening()
-                end
-                
-                self:xy(coords_table[y][x].x, _coord):addy(_offset)
-                self:decelerate(0.125)
-                self:y(_coord)
+                self:finishtweening()
+                self:visible(coords_table[y][x].active)
+                self:xy(coords_table[y][x].x, _coord + _offset):z((y * x + x) * 0.01)
+                self:decelerate(0.125):y(_coord)
+            end,
+
+            StateChangedMessageCommand=function(self) 
+                self:finishtweening()
+                self:sleep(ItemDelay(x,y)):decelerate(0.1)
+                self:zoomy(SelectMusic.state == 0 and 1 or 0) 
             end,
 
             SortChangedMessageCommand=function(self)
                 local coord = coords_table[y][x]
                 if coord and coord.type and coord.type == ItemType.Song then
-                    self:finishtweening()
-                    self:rotationx(90)
-                    self:sleep(ItemDelay(x,y) * 0.5)
-                    self:decelerate(0.1)
-                    self:rotationx(0)
+                    self:finishtweening():zoomy(0)
+                    self:sleep(ItemDelay(x,y) * 0.5):decelerate(0.1)
+                    self:zoomy(1)
                 end
             end,
+            
             
             -- base quad
             Def.Quad{
@@ -793,169 +825,124 @@ for y = 1, Grid.slots.y do
                 
                 OnCommand=function(self)
                     self:playcommand("GridScroll")
-                end,
-
-                StateChangedMessageCommand=function(self) 
-                    if SelectMusic.state == 0 then
-                        self:finishtweening()
-                        self:sleep(ItemDelay(x,y))
-                        self:decelerate(0.1)
-                        self:rotationx(0)
-                    else
-                        self:finishtweening()
-                        self:sleep(ItemDelay(x,y))
-                        self:decelerate(0.1)
-                        self:rotationx(90)
-                    end
-                end,    
+                end, 
 
                 GridScrollMessageCommand=function(self)
                     local coord = coords_table[y][x]
-                    if SelectMusic.state == 0 then
-                        self:finishtweening()
-                    end
-                    
+                    local item = GetCurrentRow( y + current_index.y - Grid.middle.y )[x]
+                    if SelectMusic.state == 0 then self:finishtweening() end
                     self:zoomto(coord.width, coord.height)
                     if current_column == x and Grid.middle.y == y then
                         self:diffuse( Color.White )
                     else
-                        local type = coords_table[y][x].type
-                        self:diffuse( Grid.colors[type] )
+                        self:diffuse( Grid.colors[ coords_table[y][x].type ] )
                     end
+                    self:visible(not (item and item.type and item.type == ItemType.Song and true or false))
                 end
+            },
+
+            Def.Sprite{
+                Name = "Mask",
+                Texture = "../graphics/grid_song_mask",
+                InitCommand=function(self)
+                    self:valign(0):MaskSource(true)
+                    self:scaletoclipped(Grid.size.Song.x + 20, Grid.size.Song.y + 16)
+                end,
+
+                GridScrollMessageCommand=function(self)
+                    local item = GetCurrentRow( y + current_index.y - Grid.middle.y )[x]
+                    self:visible(item and item.type and item.type == ItemType.Song and true or false)
+                end,
             },
             
 
             Def.Banner{
                 Name = "Banner",
-                InitCommand=function(self)
-                    self:valign(0)
-                end,
-                
-                OnCommand=function(self)
-                    self:playcommand("GridScroll")
-                end,
+                InitCommand=function(self) self:valign(0):MaskDest() end,
+                OnCommand=function(self) self:playcommand("GridScroll") end,
+                HideCommand=function(self) self:visible(false) end,
 
-                HideCommand=function(self)
-                    self:visible(false)
-                end,
-
-                StateChangedMessageCommand=function(self) 
-                    if SelectMusic.state == 0 then
-                        self:visible(true)
-                        self:finishtweening()
-                        self:sleep(ItemDelay(x,y))
-                        self:decelerate(0.1)
-                        self:rotationx(0)
-                    else
-                        self:finishtweening()
-                        self:sleep(ItemDelay(x,y))
-                        self:decelerate(0.1)
-                        self:rotationx(90)
-                        self:sleep(0.1)
-                        self:queuecommand("Hide")
-                    end
-                end,   
-        
                 GridScrollMessageCommand=function(self)
                     if SelectMusic.state == 0 then
                         self:finishtweening()
                     end
 
-                    self:Load(nil)
-        
                     local selected = current_column == x and Grid.middle.y == y
                     local item = GetCurrentRow( y + current_index.y - Grid.middle.y )[x]
-        
+                    local has_banner = false
+
                     if item then
                         if item.type == ItemType.Song then 
-                            -- local path = item.content and item.content:GetBannerPath() or THEME:GetPathG("", "_missing")
-                            -- if path then
-                            --     if not BANNER_CACHE[path] then
-                            --         self:LoadFromCachedBanner(path)
-                            --         BANNER_CACHE[path] = self:GetTexture()
-                            --     else
-                            --         self:SetTexture( BANNER_CACHE[path] )
-                            --     end
-                            -- else
-                                self:Load(THEME:GetPathG("", "patterns/noise"))
-                            -- end
-
-                            self:scaletoclipped(Grid.size.Song.x, Grid.size.Song.y)
-                            self:customtexturerect(0,0, 80 / self:GetWidth(), 40 / self:GetHeight())
-                            self:texcoordvelocity(80,120)
-
-                            self:diffuse( selected and Color.White or (item.content and Grid.colors.Song or Color.Red) )
-                            self:glow( selected and {1,1,1,1} or {0,0,0,0} )
-
-                        elseif item.type == ItemType.Folder then
+                            ItemBanner( self, item.content, selected )
+                        else
                             self:Load(nil)
                         end
                     else
                         self:Load(nil)
                     end
-
                 end,
             },
             
-
-            Def.BitmapText{
-                Name = "Label",
-                Font = Font.UINormal,
-                InitCommand=function(self) 
-                    self:shadowlength(1)
-                end,
-                
-                OnCommand=function(self)
-                    self:playcommand("GridScroll") 
-                end,
-
-                HideCommand=function(self)
-                    self:visible(false)
-                end,
-
-                StateChangedMessageCommand=function(self) 
-                    if SelectMusic.state == 0 then
-                        self:visible(true)
-                        self:finishtweening()
-                        self:sleep(ItemDelay(x,y))
-                        self:decelerate(0.1)
-                        self:rotationx(0)
-                    else
-                        self:finishtweening()
-                        self:sleep(ItemDelay(x,y) * 0.5)
-                        self:decelerate(0.1)
-                        self:rotationx(90)
-                        self:sleep(0.1)
-                        self:queuecommand("Hide")
-                    end
+            -- frame
+            Def.Sprite{
+                Name = "Frame",
+                Texture = "../graphics/grid_song_frame",
+                InitCommand=function(self)
+                    self:xy(1,-1):valign(0)
+                    self:scaletoclipped(Grid.size.Song.x + 20, Grid.size.Song.y + 12)
+                    self:diffuse( BoostColor( Color.White, 0.1 ))
+                    self:diffusetopedge( BoostColor( Color.White, 0.333333 ))
                 end,
 
                 GridScrollMessageCommand=function(self)
-                    if SelectMusic.state == 0 then
-                        self:finishtweening()
-                    end
+                    local item = GetCurrentRow( y + current_index.y - Grid.middle.y )[x]
+                    local selected = current_column == x and Grid.middle.y == y
+                    self:visible(item and item.type and item.type == ItemType.Song and true or false)
 
-                    self:y(coords_table[y][x].height * 0.5):addy(-2)
+                    local c = selected and AccentColor( "Blue", 1 ) or Color.White
+                    self:diffuse( BoostColor( c, selected and 1 or 0.1 ))
+                    self:diffusetopedge( BoostColor( c, selected and 5 or 0.333333 ))
+                end,
+            },
 
+            -- label
+            Def.BitmapText{
+                Name = "Label",
+                Font = Font.UINormal,
+                InitCommand=function(self) self:shadowlength(1) end,
+                OnCommand=function(self) self:playcommand("GridScroll") end,
+                GridScrollMessageCommand=function(self)
+                    if SelectMusic.state == 1 then return end
+                    if SelectMusic.state == 0 then self:finishtweening() end
+
+                    self:y(coords_table[y][x].height * 0.5  )
                     local selected = current_column == x and Grid.middle.y == y
                     local item = GetCurrentRow(y + current_index.y - Grid.middle.y)[x]
-
+                    
                     if not item then 
-                        self:settext("") 
+                        self:visible(false) 
                     else
                         if item.type == ItemType.Song then
-                            -- local path = item.content:GetBannerPath()
-                            -- self:visible(path == nil)
-                            self:zoom(0.5)
-                            self:maxwidth( Grid.size.Song.x * 2 - 32)
-                            self:wrapwidthpixels( Grid.size.Song.x * 2 - 32)
-                            self:settext( item.content and item.content:GetDisplayMainTitle() or "Random")
+                            self:maxwidth( Grid.size.Song.x * 2 - Grid.padding.Song)
+                            self:wrapwidthpixels( Grid.size.Song.x * 2 - Grid.padding.Song)
+                            
+                            if item.content then
+                                local path = item.content ~= nil and item.content:GetBannerPath() or nil
+                                self:visible(path == nil)
+                                self:zoom(0.5)
+                                self:settext( item.content and item.content:GetDisplayMainTitle() or "Random")
+                            else
+                                self:y(coords_table[y][x].height * 0.5 + 16  )
+                                self:visible(true)
+                                self:zoom(0.5)
+                                self:settext( "Random")
+
+                            end
                         else
-                            -- self:visible(true)
+                            self:visible(true)
                             self:zoom(0.6)
-                            self:maxwidth( Grid.size[item.type].x * 1.5 - 32)
-                            self:wrapwidthpixels( Grid.size[item.type].x * 1.5 - 32)
+                            self:maxwidth( Grid.size[item.type].x * 1.5 - Grid.padding.Song)
+                            self:wrapwidthpixels( Grid.size[item.type].x * 1.5 - Grid.padding.Song)
                             if item.type == ItemType.Folder and SelectMusic.currentSort == SortMode.Level then
                                 self:settext( "Level "..item.content )
                             elseif item.type == ItemType.Filter then
@@ -969,10 +956,48 @@ for y = 1, Grid.slots.y do
                     self:diffuse( selected and (item.content and Color.Blue or Color.Red) or Color.White )
                     self:shadowcolor( selected and {0,0,0,0} or BoostColor( Color.Black, 0.25 ))
                 end
-            }
+            },
+
+            -- sub text
+            Def.BitmapText{
+                Name = "SubText",
+                Font = Font.UINormal,
+                OnCommand=function(self) self:playcommand("GridScroll") end,
+                GridScrollMessageCommand=function(self)
+                    if SelectMusic.state == 1 then return end
+                    if SelectMusic.state == 0 then self:finishtweening() end
+
+                    local selected = current_column == x and Grid.middle.y == y
+                    local item = GetCurrentRow(y + current_index.y - Grid.middle.y)[x]
+
+                    if not item then 
+                        self:settext("") 
+                    else
+                        if item.type == ItemType.Song and not item.content then
+                            self:zoom(0.75):align(0.5, 1)
+                            self:diffuse(selected and Color.Red or Color.White):shadowlength(selected and 0 or 1)
+                            self:xy(0, coords_table[y][x].height * 0.5 + 4 )
+                            self:settext("???"):visible(true)
+
+                        elseif item.type == ItemType.Folder then 
+                            self:zoom(0.5):align(0, 0.5)
+                            self:diffuse(Color.Blue)
+                            self:x(coords_table[y][x].width * -0.5 + 16)
+                            self:y(coords_table[y][x].height * 0.5 )
+                            self:settext(item.num_songs):visible(true) 
+                        else 
+                            self:visible(false)
+                        end
+                    end
+                end
+            },
+
+
         }
     end
 end
+
+t[#t+1] = g
 
 -- scrollbar
 t[#t+1] = Def.ActorFrame{
