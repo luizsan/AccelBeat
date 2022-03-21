@@ -36,7 +36,7 @@ t[#t+1] = Def.ActorFrame{
     }
 }
 
--- author
+-- title
 t[#t+1] = Def.ActorFrame{
     InitCommand=function(self)
         self:xy(SCREEN_LEFT + 20, SCREEN_TOP + 52)
@@ -64,7 +64,6 @@ t[#t+1] = Def.ActorFrame{
         end,
     }
 }
-
 
 
 -- beat
@@ -150,15 +149,11 @@ t[#t+1] = Def.ActorFrame{
             self:y(labelSpacing)
         end,
         EditorUpdateMessageCommand=function(self, context)
-            if context and context.SnapType then
-                self:settextf( "%s", context.SnapType )
-            end
+            self:settextf( "%s", context.SnapType.." ("..context.TapNoteType..")" )
         end,
 
     }
 }
-
--- context.TapNoteType
--- context.MarkerRange
+-- params.MarkerRange
 
 return t
