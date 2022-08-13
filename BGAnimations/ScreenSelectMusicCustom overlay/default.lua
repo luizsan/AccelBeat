@@ -17,8 +17,8 @@ local t = Def.ActorFrame{
 	end,
 
 	PlayerJoinedMessageCommand=function() 
-		SCREENMAN:SetNewScreen("ScreenSelectMusicCustom")
 		ResetState()
+		SCREENMAN:SetNewScreen("ScreenSelectMusicCustom")
 	end,
 	
 	MenuInputMessageCommand=function(self, context) 
@@ -43,15 +43,21 @@ end
 function MainController(self, context)
 	if SelectMusic.lockinput then return end
 
-	if context and context.Player and GAMESTATE:IsSideJoined(context.Player) then
-		if not OptionsListOpened(context.Player) then
-				if SelectMusic.state == 0 then GridInputController(context) 
-			elseif SelectMusic.state == 1 then StepsInputController(context) 
+	if context and context.Player then
+		if GAMESTATE:IsSideJoined(context.Player) then
+			if not OptionsListOpened(context.Player) then
+					if SelectMusic.state == 0 then GridInputController(context) 
+				elseif SelectMusic.state == 1 then StepsInputController(context) 
+				end
+			else
+				OptionsInputController(context)
 			end
+			OptionsToggle(context)
 		else
-			OptionsInputController(context)
+			if context.Menu == "Start" then
+				GAMESTATE:JoinPlayer(context.Player)
+			end
 		end
-		OptionsToggle(context)
 	end
 
 	MESSAGEMAN:Broadcast("Debug", context)
