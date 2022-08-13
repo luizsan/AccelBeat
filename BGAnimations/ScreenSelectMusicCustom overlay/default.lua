@@ -29,6 +29,11 @@ local t = Def.ActorFrame{
 t[#t+1] = MenuInputActor()
 
 function ResetState()
+	-- prevent both sides being able to control the input after playing doubles
+	-- apparently this restores the input to the "single" state correctly
+	GAMESTATE:SetCurrentPlayMode("PlayMode_Regular")
+    GAMESTATE:SetCurrentStyle( GAMESTATE:GetNumSidesJoined() > 1 and "versus" or "single")
+
 	ResetGridState()
 	for i,pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 		SelectMusic.playerOptions[pn] = ReadOptionsTable(pn)
@@ -37,17 +42,18 @@ end
 
 function MainController(self, context)
 	if SelectMusic.lockinput then return end
-	if context and context.Player and not GAMESTATE:IsSideJoined(context.Player) then return end
 
-	if not OptionsListOpened(context.Player) then
-			if SelectMusic.state == 0 then GridInputController(context) 
-		elseif SelectMusic.state == 1 then StepsInputController(context) 
+	if context and context.Player and GAMESTATE:IsSideJoined(context.Player) then
+		if not OptionsListOpened(context.Player) then
+				if SelectMusic.state == 0 then GridInputController(context) 
+			elseif SelectMusic.state == 1 then StepsInputController(context) 
+			end
+		else
+			OptionsInputController(context)
 		end
-	else
-		OptionsInputController(context)
+		OptionsToggle(context)
 	end
-	
-	OptionsToggle(context)
+
 	MESSAGEMAN:Broadcast("Debug", context)
 end
 
@@ -56,13 +62,18 @@ function Confirm()
     if GAMESTATE:GetNumSidesJoined() > 1 then
         GAMESTATE:SetCurrentStyle("versus")
     else
-        -- if routine then
-        -- 
-        -- GAMESTATE:JoinPlayer( OtherPlayer[master] )
-        -- GAMESTATE:SetCurrentStyle("routine")
-        -- GAMESTATE:SetCurrentSteps( master, SelectMusic.playerSteps[master] )
-        -- GAMESTATE:SetCurrentSteps( OtherPlayer[master], SelectMusic.playerSteps[master] )
-        GAMESTATE:SetCurrentStyle("single")
+		local stype = SelectMusic.playerSteps[master]:GetStepsType()
+		local routine = string.find( tostring(stype):lower(), "routine" )
+        if routine then
+			-- GAMESTATE:JoinPlayer( OtherPlayer[master] )
+			-- GAMESTATE:SetCurrentStyle("routine")
+			-- GAMESTATE:SetCurrentSteps( master, SelectMusic.playerSteps[master] )
+			-- GAMESTATE:SetCurrentSteps( OtherPlayer[master], SelectMusic.playerSteps[master] )
+			SCREENMAN:SystemMessage("Routine (co-op) is not supported yet")
+			return
+		else
+        	GAMESTATE:SetCurrentStyle("single")
+		end
     end
     
     GAMESTATE:SetCurrentSong( SelectMusic.song )
