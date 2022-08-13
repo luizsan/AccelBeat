@@ -9,7 +9,7 @@ local t = Def.ActorFrame{
     PlayMusicCommand=function(self)
         local song = GAMESTATE:GetCurrentSong()
         if song then
-            SOUND:PlayMusicPart( song:GetMusicPath(), song:GetSampleStart(), song:GetSampleLength(), 0, 1, false, false, false, song:GetTimingData() )
+            SOUND:PlayMusicPart( song:GetMusicPath(), song:GetSampleStart(), song:GetSampleLength(), 0, 1, true, false, false, song:GetTimingData() )
         end
     end,
 }
