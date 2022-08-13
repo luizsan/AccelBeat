@@ -13,6 +13,8 @@ local nps = {
     [PLAYER_2] = { peak = 0, average = 0, density = 0 },
 }
 
+local disabledColor = BoostColor( Color.White, 0.333333 )
+
 local t = Def.ActorFrame{
     -- this is the worst hack of All Time™
     -- InitCommand=function(self)
@@ -124,9 +126,12 @@ function CalculateNPS(pn)
 end
 
 
--- for i, pn in ipairs({ PLAYER_1, PLAYER_2 }) do
-for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
+for i, pn in ipairs({ PLAYER_1, PLAYER_2 }) do
+-- for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     
+    local joined = GAMESTATE:IsSideJoined(pn)
+    local sideColor = joined and PlayerColor(pn) or disabledColor
+
     -- steps panel
     local side = Def.ActorFrame{
         InitCommand=function(self)
@@ -166,7 +171,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             self:xy(125 * pnSide(pn), -218)
             self:zoom(0.45)
             self:shadowlength(1)
-            self:diffuse( PlayerColor(pn) )
+            self:diffuse( sideColor )
         end
     }
 
@@ -185,14 +190,15 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         StepsChangedMessageCommand=function(self)
             if SelectMusic.playerSteps[pn] then
                 local author = SelectMusic.playerSteps[pn]:GetAuthorCredit()
-                if ValidMetadata(author) then
+                if joined and ValidMetadata(author) then
                     self:settext( author )
                     self:diffusealpha( 1 )
-                else
-                    self:settext( "Unknown Author" )
-                    self:diffusealpha( 0.333333 )
+                    return
                 end
             end
+
+            self:settext( "Unknown Author" )
+            self:diffusealpha( 0.15 )
         end
     }
 
@@ -224,11 +230,12 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                 if ValidMetadata(label) then
                     self:settext( label )
                     self:diffusealpha( 1 )
-                else
-                    self:settext( "No Description" )
-                    self:diffusealpha( 0.333333 )
+                    return
                 end
             end
+
+            self:settext( "No Description" )
+            self:diffusealpha( 0.15 )
         end
     }
 
@@ -241,7 +248,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             self:xy(-115 + (12 * pnSide(pn)), -12)
             self:zoom(0.425)
             self:shadowlength(1)
-            self:diffuse( PlayerColor(pn) )
+            self:diffuse( sideColor )
         end,
     }
 
@@ -254,7 +261,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             self:xy(-115 + (12 * pnSide(pn)), 4)
             self:zoom(0.425)
             self:shadowlength(1)
-            self:diffuse( PlayerColor(pn) )
+            self:diffuse( sideColor )
         end,
     }
 
@@ -272,6 +279,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
         StepsChangedMessageCommand=function(self)
             self:settext( string.format( "%.2f", nps[pn].peak ))
+            self:diffuse( joined and Color.White or disabledColor )
         end
     }
 
@@ -288,10 +296,21 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
         StepsChangedMessageCommand=function(self)
             self:settext( string.format( "%.2f", nps[pn].average ))
+            self:diffuse( joined and Color.White or disabledColor )
         end
     }
 
     
+    -- nps graph
+    side[#side+1] = LoadActor("graph", 232, 80, false, pn)..{
+        InitCommand=function(self)
+            self:xy(pnSide(pn) * 12, 80)
+        end,
+        StepsChangedMessageCommand=function(self)
+            self:queuecommand("RefreshGraph")
+        end,
+    }
+
 
     -- radar
     for r = 1, #radar do
@@ -313,7 +332,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                     self:setstate(r-1)
                     self:zoomto(40,40)
                     self:xy(-26,-6)
-                    self:diffuse( BoostColor( PlayerColor(pn), 0.75) )
+                    self:diffuse( BoostColor( sideColor, 0.75) )
                     self:diffusealpha( 0.25 )
                 end,
             },
@@ -324,7 +343,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                 InitCommand=function(self)
                     self:zoom(0.4)
                     self:y(-16)
-                    self:diffuse( PlayerColor(pn) )
+                    self:diffuse( sideColor )
                 end,
 
                 StepsChangedMessageCommand=function(self)
@@ -341,18 +360,21 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                 Text = "0000",
                 InitCommand=function(self)
                     self:zoom(0.6)
-                    self:strokecolor( BoostColor( PlayerColor(pn), 0.5 ))
-                    self:shadowcolor( BoostColor( PlayerColor(pn), 0.15 ))
+                    self:strokecolor( BoostColor( sideColor, 0.5 ))
+                    self:shadowcolor( BoostColor( sideColor, 0.15 ))
                     self:shadowlength(1.5)
                     self:Load("RollingNumbersRadar")
                 end,
 
                 StepsChangedMessageCommand=function(self)
-                    if SelectMusic.playerSteps[pn] then
+                    if joined and SelectMusic.playerSteps[pn] then
+                        self:diffuse( Color.White )
                         self:targetnumber("0")
                         local rv = SelectMusic.playerSteps[pn]:GetRadarValues(pn)
                         local val = rv:GetValue(radar[r])
-                        self:targetnumber( string.cap(tostring(val), "0", 4) )
+                        self:targetnumber( joined and string.cap(tostring(val), "0", 4) or 0 )
+                    else
+                        self:targetnumber( 0 )
                     end
                 end,
             }
@@ -364,7 +386,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             end,
             StepsChangedMessageCommand=function(self, context)
                 if context and context.Player == pn then
-                    self:playcommand("RefreshScore", context)
+                    self:playcommand("RefreshScore", { Player = pn })
                 end
             end
         }
@@ -397,12 +419,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         InitCommand=function(self)
             self:zoomx(0.65)
             self:zoomy(0.65)
-
-            if GAMESTATE:IsSideJoined(pn) then
-                self:diffuse( BoostColor( PlayerColor( pn ), 0.8))
-            else
-                self:diffuse( BoostColor( Color.White, 0.333333 ))
-            end
+            self:diffuse(sideColor)
         end,
     }
     
@@ -451,7 +468,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         InitCommand=function(self)
             self:zoom(0.45)
             self:y(-36)
-            self:shadowlength(1)
+            self:shadowlength(1.25)
         end,
 
         SongChangedMessageCommand=function(self) self:playcommand("Refresh") end,
@@ -459,13 +476,13 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         StepsChangedMessageCommand=function(self) self:playcommand("Refresh") end,
 
         RefreshCommand=function(self)
-            if SelectMusic.playerSteps[pn] then
+            if joined and SelectMusic.playerSteps[pn] then
                 self:settext( ShortType( SelectMusic.playerSteps[pn]):upper() )
                 self:diffuse( StepsColor( SelectMusic.playerSteps[pn] ))
                 self:diffusetopedge( Color.White )
             else
                 self:settext( "NONE" )
-                self:diffuse( Color.White )
+                self:diffuse( disabledColor )
             end
         end,
     }
@@ -496,14 +513,16 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         StepsChangedMessageCommand=function(self) self:playcommand("Refresh") end,
 
         RefreshCommand=function(self,context)
-            if SelectMusic.playerSteps[pn] then
+            if joined and SelectMusic.playerSteps[pn] then
                 self:settext( string.cap( SelectMusic.playerSteps[pn]:GetMeter(), "0", 2))
                 self:diffuse( StepsColor( SelectMusic.playerSteps[pn] ))
                 self:strokecolor( BoostColor( StepsColor( SelectMusic.playerSteps[pn] ), 0.35 ))
                 self:diffusetopedge( Color.White )
             else
                 self:settext( "00" )
+                self:strokecolor( BoostColor( disabledColor, 0.25 ) )
                 self:diffuse( Color.White )
+                self:diffusealpha( 0.333333 )
             end
         end,
     }
@@ -559,6 +578,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                 self:setstate(selection-1)
                 self:diffuse( AccentColor("Blue", selection + 1) )
                 self:blend(selection > 1 and "BlendMode_Add" or "BlendMode_Normal")
+                self:visible( joined )
             end,
         }
     end
@@ -589,7 +609,7 @@ for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             RefreshCommand=function(self)
                 local index = scroller + SelectMusic.stepsIndex[pn]
                 local steps = SelectMusic.steps[index]
-                if steps then 
+                if joined and steps then 
                     self:visible(true)
                     self:settext( string.cap( steps:GetMeter(), "0", 2 ))
                     self:diffuse( StepsColor( steps ))

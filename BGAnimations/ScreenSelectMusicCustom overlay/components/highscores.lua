@@ -12,12 +12,13 @@ local pn = nil
 local t = Def.ActorFrame{
     RefreshScoreCommand=function(self,context)
         if not context then return end
-
         pn = context.Player
-        local profile = PROFILEMAN:GetProfile(pn)
 
-        -- top_scores[1].score = GetScore(pn, profile, SortScoresByDate )
-        top_scores[1].score = GetScore(pn, profile, SortScoresByPercent )
+        if GAMESTATE:IsSideJoined(pn) then
+            local profile = PROFILEMAN:GetProfile(pn)
+            -- top_scores[1].score = GetScore(pn, profile, SortScoresByDate )
+            top_scores[1].score = GetScore(pn, profile, SortScoresByPercent )
+        end
 
         MESSAGEMAN:Broadcast("ScoreChanged", { Player = pn })
     end
@@ -72,7 +73,7 @@ for i = 1, #top_scores do
             end,
 
             ScoreChangedMessageCommand=function(self, context)
-                if context and context.Player ~= pn then return end
+                -- if context and context.Player ~= pn then return end
                 self:settext( top_scores[i].label )
             end
         },
@@ -89,12 +90,10 @@ for i = 1, #top_scores do
             end,
 
             ScoreChangedMessageCommand=function(self, context)
-                if context and context.Player ~= pn then return end
-
-                local score = top_scores[i].score
+                local score = top_scores[i] and top_scores[i].score or nil
                 local award = score and score:GetStageAward() or nil
                 
-                self:diffuse( score and PlayerColor(context.Player) or BoostColor( Color.White, 0.25 ))
+                self:diffuse( score and PlayerColor(pn) or BoostColor( Color.White, 0.25 ))
 
                 if score then 
                     if award ~= nil then 
@@ -106,7 +105,7 @@ for i = 1, #top_scores do
                         award = "Clear!"
                     end
                 end
-
+                
                 self:settext( score and award or "No score" )
             end
         },
