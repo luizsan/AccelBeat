@@ -2,94 +2,107 @@ local t = Def.ActorFrame{}
 
 local PreviewSize = { x = 512, y = 320 }
 
--- local aft = Def.ActorFrameTexture{
---     InitCommand=function(self)
---         self:setsize(PreviewSize.x, PreviewSize.y)
---         self:SetTextureName("notefield_preview")
---         self:EnableAlphaBuffer(true)
---         self:EnablePreserveTexture(false)
---         self:Create()
---     end
--- }
+-- remember the last selected steps and number 
+-- of columns so we only update stuff when needed
+local cachedSteps = {}
+
+local aft = Def.ActorFrameTexture{
+    InitCommand=function(self)
+        self:setsize(PreviewSize.x, PreviewSize.y)
+        self:SetTextureName("notefield_preview")
+        self:EnableAlphaBuffer(true)
+        self:EnablePreserveTexture(false)
+        self:Create()
+    end
+}
 
 
--- local dist_before  = THEME:GetMetric("Player","DrawDistanceBeforeTargetsPixels")
--- local dist_after = THEME:GetMetric("Player","DrawDistanceAfterTargetsPixels")
--- local normal_y = THEME:GetMetric("Player","ReceptorArrowsYStandard")
--- local reverse_y = THEME:GetMetric("Player","ReceptorArrowsYReverse")
--- local y_offset = reverse_y - normal_y
+local dist_before  = THEME:GetMetric("Player","DrawDistanceBeforeTargetsPixels")
+local dist_after = THEME:GetMetric("Player","DrawDistanceAfterTargetsPixels")
+local normal_y = THEME:GetMetric("Player","ReceptorArrowsYStandard")
+local reverse_y = THEME:GetMetric("Player","ReceptorArrowsYReverse")
+local y_offset = reverse_y - normal_y
 
--- local function InitializeField()
---     local song = SelectMusic.song or FilterSongs(SONGMAN:GetAllSongs())[1]
---     GAMESTATE:SetCurrentSong(song)
 
---     for i,pn in ipairs(GAMESTATE:GetHumanPlayers()) do
---         GAMESTATE:SetCurrentSteps( pn, FilterSteps(song)[1] )
---     end
--- end
-
--- InitializeField()
-
--- for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
+for i, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     
---     local options = GAMESTATE:GetPlayerState(pn):GetPlayerOptions('ModsLevel_Current')
+    cachedSteps[pn] = nil
+    local options = GAMESTATE:GetPlayerState(pn):GetPlayerOptions('ModsLevel_Current')
 
---     aft[#aft+1] = Def.NoteField {
---         Name = "NotefieldPreview",
---         FOV = 60,
---         Player = pn,
---         NoteSkin = options:NoteSkin(),
---         DrawDistanceAfterTargetsPixels = dist_after,
---         DrawDistanceBeforeTargetsPixels = dist_before,
---         YReverseOffsetPixels = y_offset,
---         FieldID = i,
+    aft[#aft+1] = Def.NoteField {
+        Name = "NotefieldPreview",
+        FOV = 60,
+        Player = pn,
+        NoteSkin = "default",
+        DrawDistanceAfterTargetsPixels = dist_after,
+        DrawDistanceBeforeTargetsPixels = dist_before,
+        YReverseOffsetPixels = y_offset,
+        FieldID = i,
 
---         InitCommand=function(self)
---             self:zoom(0.75)
---             self:xy((PreviewSize.x * 0.5) + (128 * pnSide(pn)), SCREEN_CENTER_Y - 180)
---             self:SetBeatBars(true)
---             --self:SetNoteDataFromLua({})
---         end,
+        InitCommand=function(self)
+            self:zoom(0.7)
+            self:x( (PreviewSize.x * 0.5) + (128 * pnSide(pn)) )
+            self:y( SCREEN_CENTER_Y - 192 )
+            self:AutoPlay(false)
+            self:SetBeatBars(false)
+        end,
 
---         SongChangedMessageCommand=function(self) self:playcommand("Refresh") end,
---         StepsChangedMessageCommand=function(self) self:playcommand("Refresh") end,
---         RefreshCommand=function(self)
+        SongChangedMessageCommand=function(self) self:playcommand("Refresh") end,
+        StepsChangedMessageCommand=function(self) self:playcommand("Refresh") end,
+        ChangePropertyMessageCommand=function(self) self:playcommand("Refresh") end,
+
+
+        RefreshCommand=function(self)
+            self:visible(false)
+
+            if SelectMusic.state ~= 1 then return end
+
+            -- setup
+            local st = SelectMusic.playerSteps[pn]
+            GAMESTATE:SetCurrentSong( SelectMusic.song )
+            GAMESTATE:SetCurrentSteps( pn, st )
             
---             local str = GAMESTATE:GetPlayerState(pn):GetPlayerOptionsString('ModsLevel_Current')
+            local style = GAMESTATE:GetNumSidesJoined() > 1 and "versus" or string.lower(ShortType(st))
+            GAMESTATE:SetCurrentStyle( style )
 
---             --self:NoteSkin( SelectMusic.playerOptions[pn].NoteSkin )
+            if st == nil then return end
 
---             -- self:AutoPlay(true)
---             self:SetNoteDataFromLua({})
---             --self:visible(false)
+            local speed = SelectMusic.playerOptions[pn].SpeedMod * 0.9
+            self:ModsFromString("c"..speed..",overhead" )
 
---             if not SelectMusic.song then return end
 
---             local index = 1
---             for n, c in ipairs(SelectMusic.song:GetAllSteps()) do
---                 if c == GAMESTATE:GetCurrentSteps(pn) then
---                     index = n
---                 end
---             end
+            -- ensure the notefield has the correct amount of columns
+            -- when changing between StepsTypes
+            if not cachedSteps[pn] or cachedSteps[pn]:GetStepsType() ~= st:GetStepsType() then
+                self:ChangeReload( st )
+                cachedSteps[pn] = st
+            end
 
---             local notedata = SelectMusic.song:GetNoteData(index)
---             if not notedata then return end
+            -- center when double
+            self:x((PreviewSize.x * 0.5) + (128 * pnSide( style == "double" and 0 or pn )))
+            self:SetNoteDataFromLua({})
             
+            -- fail checks
+            local index = table.index( SelectMusic.song:GetAllSteps(), SelectMusic.playerSteps[pn] )
+            if index < 0 then return end
+            local notedata = SelectMusic.song:GetNoteData(index)
+            if not notedata then return end
+    
+            self:SetNoteDataFromLua(notedata)
+            self:visible(true)
+        end
+    }
 
---             self:SetNoteDataFromLua(notedata)
---             self:ModsFromString(str)
---             self:visible(true)
---         end
---     }
-
--- end
+end
 
 
--- t[#t+1] = aft
+t[#t+1] = aft
+
+
 
 t[#t+1] = Def.ActorFrame{
     InitCommand=function(self)
-        self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y - 85)
+        self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y - 92)
         self:visible(false)
     end,
 
@@ -97,31 +110,32 @@ t[#t+1] = Def.ActorFrame{
         self:visible(SelectMusic.state == 1)
     end,
 
-    Def.Sprite{
-        Texture = THEME:GetPathG("", "patterns/noise"),
-        InitCommand=function(self)
-            self:zoomto(PreviewSize.x, PreviewSize.y)
-            local ratio = PreviewSize.x / PreviewSize.y
-            self:diffuse(0.5,0.5,0.5,0.5)
-            self:customtexturerect(0,0, 1 * ratio, 1)
-            self:texcoordvelocity(80,120)
-            self:fadebottom(0.25)
-        end
-    },
-
-    Def.BitmapText{
-        Text = "Chart Preview",
-        Font = Font.UINormal,
-        InitCommand=function(self)
-            self:zoom(0.5)
-        end
-    },
-
     -- Def.Sprite{
-    --     Texture = "notefield_preview",
+    --     Texture = THEME:GetPathG("", "patterns/noise"),
     --     InitCommand=function(self)
-    --     end,
-    -- }
+    --         self:zoomto(PreviewSize.x, PreviewSize.y)
+    --         local ratio = PreviewSize.x / PreviewSize.y
+    --         self:diffuse(0.5,0.5,0.5,0.5)
+    --         self:customtexturerect(0,0, 1 * ratio, 1)
+    --         self:texcoordvelocity(80,120)
+    --         self:fadebottom(0.25)
+    --     end
+    -- },
+
+    -- Def.BitmapText{
+    --     Text = "Chart Preview",
+    --     Font = Font.UINormal,
+    --     InitCommand=function(self)
+    --         self:zoom(0.5)
+    --     end
+    -- },
+
+    Def.Sprite{
+        Texture = "notefield_preview",
+        InitCommand=function(self)
+            self:fadebottom(0.125)
+        end,
+    }
 }
 
 
