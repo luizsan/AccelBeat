@@ -751,15 +751,17 @@ end
 
 function ItemBanner(self, song, selected)
     local path = song and song:GetBannerPath() or nil
-    
+
     if path then
         self:animate(0)
 
         -- somehow, it will actually cache the banner if loaded twice
         -- this massively improves performance when loading new banners
         -- a certified stepmania™ moment
-        self:LoadFromCached("Banner", path) 
-        self:LoadFromCached("Banner", path) 
+        -- self:LoadFromCached("Banner", path) 
+        -- self:LoadFromCached("Banner", path) 
+        self:Load(path) 
+        self:Load(path) 
     else 
         self:animate(1)
         self:Load(THEME:GetPathG("", "patterns/noise"))
