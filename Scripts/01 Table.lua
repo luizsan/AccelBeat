@@ -9,7 +9,7 @@ function table.index( t, element )
     for k, v in ipairs(t) do
         if v == element then return k end
     end
-    return nil
+    return -1
 end
 
 function table.reverse( t )
