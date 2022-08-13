@@ -14,10 +14,10 @@ function ReadOptionsTable(pn)
 
     if PROFILEMAN:IsPersistentProfile(pn) then
         local profile_dir = GetPlayerOrMachineProfileDir(pn)
-        t.Increment = LoadModule("Config.Load.lua")("Increment", profile_dir.."/"..PlayerConfigDir) or 25
+        t.Increment = LoadModule("Config.Load.lua")("Increment", profile_dir.."/"..PlayerConfigDir) or DEFAULT_INCREMENT
         t.Increment = math.ceil( t.Increment )
     else
-        t.Increment = 25
+        t.Increment = DEFAULT_INCREMENT
     end
 
     t.Hidden = options:Hidden()
@@ -99,6 +99,44 @@ local function ItemExit(label)
 end
 
 
+local function ResetSpeed(t)
+    t.SpeedMod = DEFAULT_SPEED_VALUE
+    t.SpeedType = DEFAULT_SPEED_TYPE
+    t.Increment = DEFAULT_INCREMENT
+end
+
+
+local function ResetDisplay(t)
+    t.Hidden = 0
+    t.Sudden = 0
+    t.Stealth = 0
+    t.Blink = 0
+end
+
+local function ResetTransform(t)
+    t.Reverse = 0
+end
+
+local function ResetModifiers(t)
+    t.Dizzy = 0
+    t.Tipsy = 0
+    t.Drunk = 0
+    t.Boost = 0
+    t.Brake = 0
+    t.Boomerang = 0
+    t.Tornado = 0
+    t.Invert = 0
+    t.Flip = 0
+end
+
+local function ResetAll(t)
+    ResetSpeed(t)
+    ResetDisplay(t)
+    ResetTransform(t)
+    ResetModifiers(t)
+end
+
+
 -- options layout
 OptionsList = {
     {
@@ -109,7 +147,7 @@ OptionsList = {
             ItemRange( "SpeedMod", 250, 1, 9999, 25 ),
             ItemChoices( "Increment", 25, { 5, 10, 25, 50, 100 }),
             ItemChoices( "SpeedType", "maximum", SpeedType),
-            ItemAction( "Reset", function() end),
+            ItemAction( "Reset", function(t) ResetSpeed(t) end),
             ItemExit( "Exit" )
         },
     },
@@ -134,7 +172,7 @@ OptionsList = {
             --     ItemToggle( "ShowDetailedInfo", false ),
             --     ItemExit( "Exit" ),
             -- }),
-            ItemAction( "Reset", function() end),
+            ItemAction( "Reset", function(t) ResetDisplay(t) end),
             ItemExit( "Exit" ),
         },
     },
@@ -144,14 +182,16 @@ OptionsList = {
         Type = OptionsType.Menu,
         Choices = {
             { Name = "Zoom", Type = OptionsType.Menu, Disabled = true },
+                -- zoom x y z
             { Name = "Rotation", Type = OptionsType.Menu, Disabled = true },
+                -- rotation x y z
             ItemMenu( "Viewport", {
                 ItemToggle( "Reverse", 0 ),
                 -- yoffset
                 -- fov
                 ItemExit( "Exit" ),
             }),
-            ItemAction( "Reset", function() end),
+            ItemAction( "Reset", function(t) ResetTransform(t) end),
             ItemExit( "Exit" )
         },
     },
@@ -169,12 +209,12 @@ OptionsList = {
             ItemToggle( "Tornado", 0 ),
             ItemToggle( "Invert", 0 ),
             ItemToggle( "Flip", 0 ),
-            ItemAction( "Reset", function() end),
+            ItemAction( "Reset", function(t) ResetModifiers(t) end),
             ItemExit( "Exit" )
         },
     },
     
-    ItemAction( "Reset", function() end),
+    ItemAction( "Reset All", function(t) ResetAll(t) end),
     ItemExit("Exit")
 }
 

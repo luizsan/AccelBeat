@@ -88,6 +88,7 @@ function CloseOptionsList(context)
     playerData[context.Player].stack = {}
     playerData[context.Player].field = nil
     RefreshElements(context)
+    WriteOptionsTable(context.Player, SelectMusic.playerOptions[context.Player])
     MESSAGEMAN:Broadcast("OptionsList", context)
 end
 
@@ -251,8 +252,7 @@ function ChooseOption(context)
         
     elseif current_option.Type == OptionsType.Action then
         context.property = MenuAction.Property
-
-        current_option.Action(context)
+        current_option.Action( SelectMusic.playerOptions[context.Player] )
         RefreshElements(context)
         MESSAGEMAN:Broadcast("OptionsList", context)
 

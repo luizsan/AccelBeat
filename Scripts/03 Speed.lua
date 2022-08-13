@@ -1,5 +1,6 @@
 DEFAULT_SPEED_VALUE = 500
 DEFAULT_SPEED_TYPE = "maximum"
+DEFAULT_INCREMENT = 25
 
 function GetSpeed(pn)
     local state = GAMESTATE:GetPlayerState(pn)
