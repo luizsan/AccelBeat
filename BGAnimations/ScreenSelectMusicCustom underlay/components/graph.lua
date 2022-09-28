@@ -11,24 +11,22 @@ end
 local peak, npst, NMeasure, mcount = 0, {}, {}, 0
 local verts = {}
 
-function SongPosition(self, dt)
+local function SongPosition(self, dt)
     self:playcommand("SongPosition")
 end
 
 
 local amv = Def.ActorFrame{
     OnCommand=function(self) 
-        if GAMESTATE:GetCurrentSong() then
-            self:stoptweening():sleep(0.4):queuecommand("ShowAMV")
-            self:SetUpdateFunction(SongPosition)
-            self:visible( GAMESTATE:IsSideJoined(pn) )
-        end
+        self:SetUpdateFunction(SongPosition)
+        self:stoptweening():sleep(0.4):queuecommand("RefreshGraph")
+        self:visible( GAMESTATE:IsSideJoined(pn) )
     end,
 
     -- background
     Def.Quad{
         InitCommand=function(self)
-            self:diffuse( 0, 0, 0, 0.2 )
+            self:diffuse( 0, 0, 0, 0.085 )
             self:zoomto(width, height * 2)
             self:xy(0, 0)
         end,
@@ -47,7 +45,7 @@ local amv = Def.ActorFrame{
                 -- Grab every instance of the NPS data.
                 local step = GAMESTATE:GetCurrentSteps(pn)
                 local stepcolor = PlayerColor(pn)
-                local graphcolor = BoostColor( PlayerColor(pn), 0.5 )
+                local graphcolor = BoostColor( PlayerColor(pn), 0.2 )
                 peak, npst, NMeasure, mcount = LoadModule("Chart.GetNPS.lua")(step)
                 if npst then
                     for k,v in pairs( npst ) do
@@ -90,8 +88,7 @@ local amv = Def.ActorFrame{
     -- preview area
     Def.Quad{
         InitCommand=function(self)
-            self:diffuse( BoostColor(PlayerColor(pn),0.333333) )
-            self:diffusealpha(0.666666)
+            self:diffusealpha(0.2)
             self:zoomto(width, height * 2)
             self:halign(0)
             self:xy(0, 0)
@@ -99,6 +96,7 @@ local amv = Def.ActorFrame{
 
         RefreshGraphCommand=function(self)
             local song = SelectMusic.song
+            if not song then return end
             local start = song:GetSampleStart() / song:GetLastSecond()
             local len = song:GetSampleLength() / song:GetLastSecond()
             self:xy( (-width *0.5) + (start * width), 0)
@@ -110,9 +108,9 @@ local amv = Def.ActorFrame{
     Def.Quad{
         InitCommand=function(self)
             self:zoomto(1, height * 2)
-            self:diffusealpha(0.5)
+            self:diffusealpha(0.75)
         end,
-
+        
         SongPositionCommand=function(self)
             local song = SelectMusic.song
             if not SelectMusic.song then return end

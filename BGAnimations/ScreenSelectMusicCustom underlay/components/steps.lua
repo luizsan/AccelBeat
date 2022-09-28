@@ -169,7 +169,7 @@ for i, pn in ipairs({ PLAYER_1, PLAYER_2 }) do
         InitCommand=function(self)
             self:align(pnAlign(pn),0)
             self:xy(125 * pnSide(pn), -218)
-            self:zoom(0.45)
+            self:zoom(0.4)
             self:shadowlength(1)
             self:diffuse( sideColor )
         end

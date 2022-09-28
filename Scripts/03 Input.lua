@@ -6,6 +6,11 @@ local _codes = {
 }
 
 local _direction = {
+    ["Up"] = "Up",
+    ["Down"] = "Down",
+    ["Left"] = "Left",
+    ["Right"] = "Right",
+
     ["UpLeft"] = "Up",
     ["UpRight"] = "Down",
     ["DownLeft"] = "Left",
@@ -35,6 +40,11 @@ local _menu = {
     ["Down"] = "Next",
     ["Left"] = "Prev",
     ["Right"] = "Next",
+}
+
+local _mouse = {
+    ["DeviceButton_wheel up"] = "Up",
+    ["DeviceButton_wheel down"] = "Down",
 }
 
 local _codeQueue = {
@@ -77,16 +87,33 @@ function Menu(event)
     -- if _specialKeys.CTRL then return end
     if event.type ~= "InputEventType_Release" then
 
-        -- do not 
-        local dir = _direction[event.button] or nil
-        if (not dir or dir == "Center") and event.type == "InputEventType_Repeat" then return end
+        local context = {}
 
-        local context = {
-            Menu = _menu[event.button] or event.button,
-            Direction = dir,
-            Button = event.button,
-            Player = event.PlayerNumber,
-        }
+        if event.DeviceInput.button and _mouse[event.DeviceInput.button] then
+            -- parse mouse scroll first
+            local dir = _mouse[event.DeviceInput.button]
+            context = {
+                Direction = dir,
+                Raw = event.DeviceInput.button,
+                Menu = _menu[dir],
+                Button = nil,
+                Player = GAMESTATE:GetMasterPlayerNumber()
+            }
+                
+        else
+            -- parse normal input
+            local dir = _direction[event.button] or nil
+            if (not dir or dir == "Center") and event.type == "InputEventType_Repeat" then return end
+            context = {
+                Menu = _menu[event.button] or event.button,
+                Raw = event.DeviceInput.button,
+                Direction = dir,
+                Button = event.button,
+                Player = event.PlayerNumber,
+            }
+
+        end
+
 
         MESSAGEMAN:Broadcast("MenuInput", context)
         if context.Player and GAMESTATE:IsSideJoined(context.Player) then

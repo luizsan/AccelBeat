@@ -107,8 +107,14 @@ t[#t+1] = Def.ActorFrame{
     end,
 
     StateChangedMessageCommand=function(self)
-        self:visible(SelectMusic.state == 1)
+        self:stoptweening()
+        self:visible(true)
+        self:linear(0.15)
+        self:diffusealpha(SelectMusic.state == 1 and 1 or 0)
+        self:queuecommand("Toggle")
     end,
+
+    ToggleCommand=function(self) self:visible(SelectMusic.state == 1) end,
 
     -- Def.Sprite{
     --     Texture = THEME:GetPathG("", "patterns/noise"),

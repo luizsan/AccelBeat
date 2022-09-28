@@ -2,13 +2,15 @@
 local h = 72
 
 local t = Def.ActorFrame{
+    FOV = 60,
     InitCommand=function(self)
         self:xy(SCREEN_CENTER_X, SCREEN_TOP + h)
+        self:vanishpoint(SCREEN_CENTER_X, SCREEN_CENTER_Y)
     end,
 }
 
 t[#t+1] = LoadActor("header")..{
-    InitCommand=function(self) self:y(-40) end
+    InitCommand=function(self) self:y(-40):rotationx(0) end
 }
 
 t[#t+1] = Def.Sprite{

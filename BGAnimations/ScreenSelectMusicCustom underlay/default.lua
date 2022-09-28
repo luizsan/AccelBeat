@@ -115,9 +115,13 @@ t[#t+1] = LoadActor("components/gradient")
 t[#t+1] = LoadActor("components/steps")
 t[#t+1] = LoadActor("components/sub")
 t[#t+1] = LoadActor("components/options")
+t[#t+1] = LoadActor("components/help")
 t[#t+1] = LoadActor("components/info")
+--t[#t+1] = LoadActor("components/player")
 t[#t+1] = LoadActor("components/audio")
 t[#t+1] = LoadActor("components/search")
+
+t[#t+1] = LoadActor(THEME:GetPathB("ScreenWithMenuElements", "overlay"))
 
 -- debug
 t[#t+1] = Def.BitmapText{
@@ -134,14 +138,13 @@ t[#t+1] = Def.BitmapText{
 	DebugMessageCommand=function(self, context)
 		local d = {}
 		local pn = context and context.Player or "None"
-		d[#d+1] = "Last Input"
-		d[#d+1] = "Player: "..string.gsub(pn, "PlayerNumber_", "")
+		d[#d+1] = string.format("Player: %s", pn and pn ~= "None" and ToEnumShortString(pn) or "None")
 		d[#d+1] = "Menu: "..(context and context.Menu or "---")
 		d[#d+1] = "Direction: "..(context and context.Direction or "---")
 		d[#d+1] = "GameButton: "..(context and context.Button or "---")
+		d[#d+1] = "Raw: "..(context and context.Raw or "---")
 		d[#d+1] = "Players: "..string.gsub(table.concat( GAMESTATE:GetHumanPlayers(), ", "), "PlayerNumber_", "")
-		d[#d+1] = "Confirm P1: "..(SelectMusic.confirm[PLAYER_1] or 0)
-		d[#d+1] = "Confirm P2: "..(SelectMusic.confirm[PLAYER_2] or 0)
+		d[#d+1] = string.format("Confirm: [%s,%s]", SelectMusic.confirm[PLAYER_1] or 0, SelectMusic.confirm[PLAYER_2] or 0)
 		self:settext(table.concat(d, "\n"))
 	end
 }

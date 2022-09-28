@@ -4,6 +4,7 @@ local t = Def.ActorFrame{
     end,
 
     SearchMessageCommand=function(self)
+        if SelectMusic.state == 1 then return end
         SCREENMAN:AddNewScreenToTop("ScreenSearch")
         local ste = SCREENMAN:GetTopScreen()
 

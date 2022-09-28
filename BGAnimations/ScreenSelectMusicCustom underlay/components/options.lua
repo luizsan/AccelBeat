@@ -88,7 +88,6 @@ function CloseOptionsList(context)
     playerData[context.Player].stack = {}
     playerData[context.Player].field = nil
     RefreshElements(context)
-    WriteOptionsTable(context.Player, SelectMusic.playerOptions[context.Player])
     MESSAGEMAN:Broadcast("OptionsList", context)
 end
 
@@ -278,7 +277,7 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
         OptionsListMessageCommand=function(self, context) 
             self:stoptweening()
-            self:decelerate(0.125)
+            self:decelerate(0.3)
             self:x(OptionsListOpened(pn) and 0 or (16 * pnSide(pn)))
             self:diffusealpha( OptionsListOpened(pn) and 1 or 0 ) 
         end,
@@ -287,8 +286,8 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
     -- background
     side[#side+1] = Def.Quad{
         InitCommand=function(self)
-            self:diffuse( BoostColor( PlayerColor(pn), 0.075 ))
-            self:diffusealpha(0.95)
+            self:diffuse( BoostColor( PlayerColor(pn), 0.05 ))
+            self:diffusealpha(0.75)
             
             self:xy( SCREEN_CENTER_X, SCREEN_CENTER_Y)
             self:halign(1)
@@ -301,10 +300,32 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         end
     }
 
+    -- pattern
+    side[#side+1] = Def.Sprite{
+        Texture = THEME:GetPathG("", "_pattern"),
+        InitCommand=function(self)
+            self:diffuse( BoostColor( Color.White, 0.333333 ))
+            self:diffusealpha(0.1)
+            
+            self:xy( SCREEN_CENTER_X, SCREEN_CENTER_Y)
+            self:halign(1)
+            self:zoomto( SCREEN_WIDTH * pnSide( OtherPlayer[pn]) * 0.5, SCREEN_HEIGHT )
+
+            self:customtexturerect(0,0,1.2 * self:GetZoomX(), 1.2 * self:GetZoomY())
+            self:texcoordvelocity(pnSide(pn) * 0.1, -0.05)
+            
+            local pos_ratio = (List.position - List.width) / SCREEN_CENTER_X
+            local size_ratio = (List.width * 0.75) / SCREEN_CENTER_X
+            self:cropright(pos_ratio)
+            self:faderight(size_ratio)
+        end
+    }
+
+    -- arrow
     side[#side+1] = Def.ActorFrame{
         InitCommand=function(self)
             self:zoom(0.333333)
-            local pos_x = SCREEN_CENTER_X + (List.position * pnSide(pn)) + ( (List.width * 0.5 + 20) * pnSide(pn)  )
+            local pos_x = SCREEN_CENTER_X + (List.position * pnSide(pn)) + ((List.width * 0.5 + 20) * pnSide(pn)  )
             local pos_y = SCREEN_CENTER_Y + List.spacing - 4
             self:xy( pos_x, pos_y )
         end,
@@ -329,6 +350,18 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             end,
         },
     }
+
+    side[#side+1] = Def.BitmapText{
+        Font = Font.UIHeavy,
+        Text = ToEnumShortString(pn).." OPTIONS",
+        InitCommand=function(self)
+            self:zoom(0.375)
+            self:halign( pnAlign(pn) )
+            self:xy( SCREEN_CENTER_X + (List.position * pnSide(pn)) + (List.width * 0.5 + 2) * pnSide(pn), SCREEN_CENTER_Y-130)
+            self:diffuse(0.75, 0.75, 0.75, 1)
+        end,
+    }
+        
 
     -- mask
     -- I'M LITERALLY SWEATING, WHY IS THIS SO COMPLICATED
@@ -525,7 +558,7 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                 local target = loop( playerData[pn].index - List.middle + i, 1, #playerData[pn].current + 1) 
                 local option = playerData[pn].current[target] or nil
                 
-                self:settext(option and option.Name or "")
+                self:settext(option and option.Name:upper() or "")
                 
                 if option and not option.Disabled then
                     self:diffuse( PlayerColor(pn) )

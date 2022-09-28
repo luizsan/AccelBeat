@@ -1,5 +1,5 @@
 local Header = {
-    width = 1082,
+    width = 1080,
     height = 86,
 }
 
@@ -12,6 +12,31 @@ local align = { 1, 0.5, 0 }
 
 local t = Def.ActorFrame{}
 
+-- circuits
+-- for i = -1, 1, 2 do
+--     t[#t+1] = Def.Sprite{
+--         Texture = "../graphics/header_circuits",
+--         InitCommand=function(self)
+--             self:zoomx(0.666666 * i)
+--             self:zoomy(0.666666)
+--             self:align(1, 0.333333)
+--             self:xy((Header.width - 56) * 0.5 * -i, Header.height * 0.5 + 2)
+--             self:fadeleft(1)
+
+--             --self:diffuse( AccentColor("Blue", 1))
+--             --self:diffusealpha(0.25)
+
+--             self:rainbow()
+--             -- self:effectcolor2( AccentColor( "Blue", 1 ))
+--             -- self:effectcolor1( BoostColor( AccentColor( "Blue", 2 ), 0.25))
+--             self:effectperiod(30)
+--             self:blend("BlendMode_Add")
+--         end
+--     }
+-- end
+
+
+
 t[#t+1] = Def.Quad{
     InitCommand=function(self)
         self:align(0.5, 0)
@@ -23,15 +48,15 @@ t[#t+1] = Def.Quad{
 }
 
 t[#t+1] = Def.Sprite{
-    Texture = THEME:GetPathG("", "patterns/diagonal"),
+    Texture = THEME:GetPathG("", "patterns/dots"),
     InitCommand=function(self)
         self:zoomto(Header.width + 32, Header.height - 20)
         self:align(0.5, 0)
         
-        local w = ( Header.width + 32 ) / 128.0 * 1.5
-        local h = ( Header.height - 16 ) / 128.0 * 1.5
-        self:customtexturerect(0,0,w,h)
-        self:diffuse( BoostColor( Color.White, 0.1 )):diffusealpha(0.075)
+        local w = ( Header.width + 32 ) / 128.0 * 2
+        local h = ( Header.height - 16 ) / 128.0 * 2
+        self:customtexturerect(0,0.05,w,h)
+        self:diffuse( BoostColor( Color.White, 0.1 )):diffusealpha(0.08)
         self:fadebottom(1)
         self:y(8)
     end
