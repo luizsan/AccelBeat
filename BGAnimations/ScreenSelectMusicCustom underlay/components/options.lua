@@ -1,9 +1,12 @@
 local List = {
     position = 420,
-    width = 250,
-    spacing = 30,
-    maxItems = 11,
+    width = 260,
+    spacing = 36,
+    height = -1,
+    maxItems = 9,
 }
+
+List.height = List.spacing * (List.maxItems * 0.5 + 0.5) - 4
 
 local MenuAction = {
     Menu = "menu",
@@ -326,14 +329,14 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         InitCommand=function(self)
             self:zoom(0.333333)
             local pos_x = SCREEN_CENTER_X + (List.position * pnSide(pn)) + ((List.width * 0.5 + 20) * pnSide(pn)  )
-            local pos_y = SCREEN_CENTER_Y + List.spacing - 4
+            local pos_y = SCREEN_CENTER_Y
             self:xy( pos_x, pos_y )
         end,
 
         OptionsListMessageCommand=function(self, context)
             if context and context.direction and context.Player == pn then
                 self:finishtweening()
-                local pos_y = SCREEN_CENTER_Y + List.spacing - 4
+                local pos_y = SCREEN_CENTER_Y
                 self:y( pos_y + (List.spacing * context.direction))
                 self:decelerate(0.15)
                 self:y( pos_y )
@@ -357,7 +360,7 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         InitCommand=function(self)
             self:zoom(0.375)
             self:halign( pnAlign(pn) )
-            self:xy( SCREEN_CENTER_X + (List.position * pnSide(pn)) + (List.width * 0.5 + 2) * pnSide(pn), SCREEN_CENTER_Y-130)
+            self:xy( SCREEN_CENTER_X + (List.position * pnSide(pn)) + (List.width * 0.5 + 2) * pnSide(pn), SCREEN_CENTER_Y - (List.height - List.spacing))
             self:diffuse(0.75, 0.75, 0.75, 1)
         end,
     }
@@ -372,8 +375,8 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
             self:xy(pos_x, pos_y)
         end,
 
-        Def.Quad{ InitCommand=function(self) self:zoomto(List.width * 1.2,100):diffuse(Color.Red):y(210):MaskSource() end },
-        Def.Quad{ InitCommand=function(self) self:zoomto(List.width * 1.2,100):diffuse(Color.Red):y(-160):MaskSource() end },
+        Def.Quad{ InitCommand=function(self) self:zoomto(List.width * 1.2, 100):diffuse(Color.Red):y(List.height):MaskSource() end },
+        Def.Quad{ InitCommand=function(self) self:zoomto(List.width * 1.2, 100):diffuse(Color.Red):y(-List.height):MaskSource() end },
     }
 
     local list = Def.ActorFrame{
@@ -391,7 +394,7 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                 if context and context.Player ~= pn then return end
 
                 local pos_x = SCREEN_CENTER_X + (List.position * pnSide(pn))
-                local pos_y = SCREEN_CENTER_Y + (List.maxItems * 0.5 - i) * -List.spacing + 10
+                local pos_y = SCREEN_CENTER_Y + (List.maxItems * 0.5 - i + 0.5) * -List.spacing
                 
                 local target_alpha = 1
                 local offset = 12 * -pnSide(pn)
@@ -533,7 +536,7 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
         row[#row+1] = Def.BitmapText{
             Font = Font.UINormal,
             InitCommand=function(self)
-                self:zoom(0.425)
+                self:zoom(0.45)
                 self:halign(0)
                 self:xy( (List.width - 20) * -0.5, -3)
                 self:shadowlength(0.75)
@@ -609,9 +612,9 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
 
         -- value
         row[#row+1] = Def.BitmapText{
-            Font = Font.UINormal,
+            Font = Font.UIHeavy,
             InitCommand=function(self)
-                self:zoom(0.45)
+                self:zoom(0.55)
                 self:halign(1)
                 self:xy( (List.width - 16) * 0.5, -2)
                 self:shadowlength(0.75)
@@ -642,6 +645,7 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                     
                     self:diffusealpha(1)
                     self:visible(true)
+                    self:zoom(0.55)
                     if option.Type == OptionsType.Value and option.Default then
                         if option.Name == "SpeedMod" then
                             self:settext( SpeedFormat( SelectMusic.playerOptions[pn][option.Name], SelectMusic.playerOptions[pn].SpeedType ))
@@ -650,7 +654,7 @@ for id, pn in ipairs(GAMESTATE:GetHumanPlayers()) do
                         end
 
                     elseif option.Type == OptionsType.Toggle and option.Default then
-                        self:settext( (SelectMusic.playerOptions[pn][option.Name] or option.Default or 0) == 0 and "Off" or "On" )
+                        self:settext( ((SelectMusic.playerOptions[pn][option.Name] or option.Default or 0) == 0 and "Off" or "On"):upper() )
                         
                     elseif option.Type == OptionsType.Menu and option.Choices then
                         self:diffusealpha(0.5)

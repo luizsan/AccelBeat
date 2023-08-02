@@ -112,6 +112,7 @@ end
 t[#t+1] = LoadActor("components/grid")
 t[#t+1] = LoadActor("components/preview")
 t[#t+1] = LoadActor("components/gradient")
+--t[#t+1] = LoadActor("components/analyzer")
 t[#t+1] = LoadActor("components/steps")
 t[#t+1] = LoadActor("components/sub")
 t[#t+1] = LoadActor("components/options")

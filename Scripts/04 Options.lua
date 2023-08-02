@@ -197,7 +197,7 @@ OptionsList = {
     },
     
     {
-        Name = "Modifiers",
+        Name = "Effects",
         Type = OptionsType.Menu,
         Choices = {
             ItemToggle( "Dizzy", 0 ),

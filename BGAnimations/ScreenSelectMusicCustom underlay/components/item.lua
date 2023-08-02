@@ -10,6 +10,7 @@ function MainImage(self, context)
     local rect = nil
 
     self:StopUsingCustomPosCoords()
+    self:ztestmode("ZTestMode_Off")
 
     if context.item then
         if context.item.type == ItemType.Song then
@@ -18,11 +19,25 @@ function MainImage(self, context)
             x, y = 0, 6
             c = context.selected and Color.White or context.color
 
+            self:ztestmode("ZTestMode_WriteOnFail")
+
         elseif context.item.type == ItemType.Sort then
             path = THEME:GetPathG("", "select_music/grid_sort_" .. (SelectMusic.currentSort == context.item.content and "selected" or "normal"))
             w, h = context.width + 32, context.height + 24
             x, y = 0, -10
             c = BoostColor( Color.White, context.selected and 1 or 0.666666 )
+
+        elseif context.item.type == ItemType.Folder then
+            path = THEME:GetPathG("", "_white")
+            w, h = context.width, context.height
+            x, y = 0, 0
+            c = Color.Red
+
+        elseif context.item.type == ItemType.Filter then
+            path = THEME:GetPathG("", "_white")
+            w, h = context.width, context.height
+            x, y = 0, 0
+            c = Color.Green
 
         else
             self:visible(false)
@@ -236,7 +251,7 @@ local t = Def.ActorFrame{
         end,
     },
 
-    -- label
+    -- main text
     Def.BitmapText{
         Name = "MainText",
         Font = Font.UINormal,

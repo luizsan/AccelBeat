@@ -18,11 +18,11 @@ local Grid = {
     slots = { x = math.max( MaximumPerRow.Song, MaximumPerRow.Folder, MaximumPerRow.Sort ), y = MaximumRows },
     size = {
         Song = { x = 180, y = 130 },
-        Folder = { x = 500, y = 56 },
-        Sort = { x = 192, y = 54 },
+        Folder = { x = 540, y = 72 },
+        Sort = { x = 200, y = 64 },
         Filter = { x = 256, y = 48 },
     },
-    spacing = { x = 16, y = 8 },
+    spacing = { x = 16, y = 10 },
     offset = { x = 0, y = 24 },
     middle = { x = 0, y = 0 },
     padding = {
@@ -448,6 +448,7 @@ end
 
 function SearchGrid(query)
     if not query or query == "" then return end
+    query = query:lower()
 
     current_items = nil
     current_items = {}

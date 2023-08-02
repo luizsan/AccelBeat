@@ -54,12 +54,14 @@ local infoItems = {
     { 
         name = "Beat", label = "Current Beat", side = 1, row = 0, 
         action = function(self, context)
+            if not context.Beat then return end
             self:settext( string.format("%.3f", context.Beat) )
         end,
     },
     { 
         name = "Time", label = "Current Time", side = 1, row = 1, 
         action = function(self, context)
+            if not context.Time then return end
             self:settext( string.format("%.3fs", context.Time) )
         end,
     }
